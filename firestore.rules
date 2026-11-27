@@ -1,0 +1,720 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitive Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        request.auth.token.email == 'sharmajisubham65@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidStringList(val, maxItems) {
+      return val is list && val.size() <= maxItems && (val.size() == 0 || val[0] is string);
+    }
+
+    // --- Validation Blueprints ---
+    function isValidUserAccount(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'status', 'onboardingCompleted', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'role', 'status', 'onboardingCompleted', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && isValidString(data.email, 3, 254)
+        && isValidString(data.displayName, 1, 120)
+        && (!('photoURL' in data) || isValidString(data.photoURL, 0, 500))
+        && data.role in ['freelancer', 'business', 'admin']
+        && data.status in ['active', 'suspended']
+        && data.onboardingCompleted is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidFreelancerProfile(data) {
+      return data.keys().hasAll(['uid', 'fullName', 'headline', 'services', 'skills', 'experienceLevel', 'country', 'state', 'city', 'workPreference', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'fullName', 'photoURL', 'headline', 'description', 'skills', 'services', 'experienceLevel', 'portfolioLinks', 'website', 'country', 'state', 'city', 'workPreference', 'minBudget', 'preferredIndustries', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && isValidString(data.fullName, 1, 120)
+        && (!('photoURL' in data) || isValidString(data.photoURL, 0, 500))
+        && isValidString(data.headline, 0, 180)
+        && (!('description' in data) || isValidString(data.description, 0, 2500))
+        && isValidStringList(data.skills, 30)
+        && isValidStringList(data.services, 20)
+        && data.experienceLevel in ['Beginner', 'Intermediate', 'Senior', 'Agency']
+        && (!('portfolioLinks' in data) || isValidStringList(data.portfolioLinks, 10))
+        && (!('website' in data) || isValidString(data.website, 0, 300))
+        && isValidString(data.country, 1, 80)
+        && isValidString(data.state, 0, 80)
+        && isValidString(data.city, 0, 80)
+        && data.workPreference in ['Remote', 'On-site', 'Hybrid', 'Any']
+        && (!('minBudget' in data) || (data.minBudget is number && data.minBudget >= 0))
+        && (!('preferredIndustries' in data) || isValidStringList(data.preferredIndustries, 20))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidBusinessProfile(data) {
+      return data.keys().hasAll(['uid', 'companyName', 'industry', 'country', 'state', 'city', 'size', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'companyName', 'industry', 'description', 'website', 'country', 'state', 'city', 'logoURL', 'size', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && isValidString(data.companyName, 1, 140)
+        && isValidString(data.industry, 1, 100)
+        && (!('description' in data) || isValidString(data.description, 0, 2500))
+        && (!('website' in data) || isValidString(data.website, 0, 300))
+        && isValidString(data.country, 1, 80)
+        && isValidString(data.state, 0, 80)
+        && isValidString(data.city, 0, 80)
+        && (!('logoURL' in data) || isValidString(data.logoURL, 0, 500))
+        && data.size in ['Solo', '2-10', '11-50', '51-200', '200+']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidBusinessLead(data) {
+      return data.keys().hasAll(['ownerId', 'businessName', 'category', 'location', 'source', 'isDemo', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'businessName', 'category', 'location', 'address', 'country', 'state', 'city', 'website', 'publicPhone', 'publicEmail', 'instagramUrl', 'source', 'sourceUrl', 'providerId', 'latitude', 'longitude', 'hasWebsite', 'hasInstagram', 'opportunityScore', 'confidenceScore', 'suggestedServices', 'aiExplanation', 'isDemo', 'status', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidString(data.businessName, 1, 200)
+        && isValidString(data.category, 1, 100)
+        && isValidString(data.location, 1, 200)
+        && (!('address' in data) || isValidString(data.address, 0, 400))
+        && (!('country' in data) || isValidString(data.country, 0, 80))
+        && (!('state' in data) || isValidString(data.state, 0, 80))
+        && (!('city' in data) || isValidString(data.city, 0, 80))
+        && (!('website' in data) || isValidString(data.website, 0, 400))
+        && (!('publicPhone' in data) || isValidString(data.publicPhone, 0, 60))
+        && (!('publicEmail' in data) || isValidString(data.publicEmail, 0, 254))
+        && (!('instagramUrl' in data) || isValidString(data.instagramUrl, 0, 400))
+        && isValidString(data.source, 1, 80)
+        && (!('sourceUrl' in data) || isValidString(data.sourceUrl, 0, 600))
+        && (!('providerId' in data) || isValidString(data.providerId, 0, 140))
+        && (!('latitude' in data) || data.latitude is number)
+        && (!('longitude' in data) || data.longitude is number)
+        && (!('hasWebsite' in data) || data.hasWebsite is bool)
+        && (!('hasInstagram' in data) || data.hasInstagram is bool)
+        && (!('opportunityScore' in data) || (data.opportunityScore is number && data.opportunityScore >= 0 && data.opportunityScore <= 100))
+        && (!('confidenceScore' in data) || (data.confidenceScore is number && data.confidenceScore >= 0 && data.confidenceScore <= 100))
+        && (!('suggestedServices' in data) || isValidStringList(data.suggestedServices, 12))
+        && (!('aiExplanation' in data) || isValidString(data.aiExplanation, 0, 1000))
+        && data.isDemo is bool
+        && data.status in ['active', 'archived', 'flagged']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidHiringOpportunity(data) {
+      return data.keys().hasAll(['ownerId', 'title', 'originalText', 'sourceName', 'sourceUrl', 'aiClassification', 'confidenceScore', 'isDemo', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'title', 'originalText', 'companyName', 'requiredService', 'skillsRequired', 'budget', 'location', 'workMode', 'deadline', 'publishedAt', 'sourceName', 'sourceUrl', 'aiClassification', 'confidenceScore', 'isDemo', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidString(data.title, 1, 240)
+        && isValidString(data.originalText, 1, 4000)
+        && (!('companyName' in data) || isValidString(data.companyName, 0, 160))
+        && (!('requiredService' in data) || isValidString(data.requiredService, 0, 120))
+        && (!('skillsRequired' in data) || isValidStringList(data.skillsRequired, 15))
+        && (!('budget' in data) || isValidString(data.budget, 0, 120))
+        && (!('location' in data) || isValidString(data.location, 0, 160))
+        && (!('workMode' in data) || isValidString(data.workMode, 0, 60))
+        && (!('deadline' in data) || isValidString(data.deadline, 0, 80))
+        && (!('publishedAt' in data) || isValidString(data.publishedAt, 0, 80))
+        && isValidString(data.sourceName, 1, 100)
+        && isValidString(data.sourceUrl, 0, 600)
+        && data.aiClassification in ['Freelance Project', 'Contract Work', 'Full-Time Job', 'Part-Time Job', 'Internship', 'Agency Requirement', 'Irrelevant Content']
+        && data.confidenceScore is number && data.confidenceScore >= 0 && data.confidenceScore <= 100
+        && data.isDemo is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidLeadAnalysis(data) {
+      return data.keys().hasAll(['ownerId', 'leadId', 'businessName', 'onlinePresenceSummary', 'aiRecommendation', 'opportunityScore', 'confidenceScore', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'leadId', 'businessName', 'onlinePresenceSummary', 'contentObservations', 'improvementAreas', 'potentialOpportunities', 'aiRecommendation', 'opportunityScore', 'confidenceScore', 'evidence', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidId(data.leadId)
+        && isValidString(data.businessName, 1, 200)
+        && isValidString(data.onlinePresenceSummary, 1, 2000)
+        && (!('contentObservations' in data) || isValidString(data.contentObservations, 0, 2000))
+        && (!('improvementAreas' in data) || isValidStringList(data.improvementAreas, 12))
+        && (!('potentialOpportunities' in data) || isValidStringList(data.potentialOpportunities, 12))
+        && isValidString(data.aiRecommendation, 1, 2000)
+        && data.opportunityScore is number && data.opportunityScore >= 0 && data.opportunityScore <= 100
+        && data.confidenceScore is number && data.confidenceScore >= 0 && data.confidenceScore <= 100
+        && (!('evidence' in data) || isValidStringList(data.evidence, 12))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSavedLead(data) {
+      return data.keys().hasAll(['ownerId', 'leadId', 'businessName', 'category', 'location', 'source', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'leadId', 'businessName', 'category', 'location', 'website', 'publicPhone', 'publicEmail', 'source', 'sourceUrl', 'opportunityScore', 'suggestedServices', 'notes', 'isDemo', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidId(data.leadId)
+        && isValidString(data.businessName, 1, 200)
+        && isValidString(data.category, 1, 100)
+        && isValidString(data.location, 1, 200)
+        && (!('website' in data) || isValidString(data.website, 0, 400))
+        && (!('publicPhone' in data) || isValidString(data.publicPhone, 0, 60))
+        && (!('publicEmail' in data) || isValidString(data.publicEmail, 0, 254))
+        && isValidString(data.source, 1, 80)
+        && (!('sourceUrl' in data) || isValidString(data.sourceUrl, 0, 600))
+        && (!('opportunityScore' in data) || (data.opportunityScore is number && data.opportunityScore >= 0 && data.opportunityScore <= 100))
+        && (!('suggestedServices' in data) || isValidStringList(data.suggestedServices, 12))
+        && (!('notes' in data) || isValidString(data.notes, 0, 1500))
+        && (!('isDemo' in data) || data.isDemo is bool)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCrmItem(data) {
+      return data.keys().hasAll(['ownerId', 'businessName', 'status', 'estimatedValue', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'leadId', 'businessName', 'category', 'location', 'source', 'status', 'estimatedValue', 'followUpDate', 'notes', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && (!('leadId' in data) || isValidString(data.leadId, 0, 128))
+        && isValidString(data.businessName, 1, 200)
+        && (!('category' in data) || isValidString(data.category, 0, 100))
+        && (!('location' in data) || isValidString(data.location, 0, 200))
+        && (!('source' in data) || isValidString(data.source, 0, 80))
+        && data.status in ['New', 'Interested', 'Saved', 'Contacted', 'Replied', 'Negotiating', 'Converted', 'Not Interested', 'Closed']
+        && data.estimatedValue is number && data.estimatedValue >= 0
+        && (!('followUpDate' in data) || isValidString(data.followUpDate, 0, 40))
+        && (!('notes' in data) || isValidString(data.notes, 0, 3000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCrmActivity(data) {
+      return data.keys().hasAll(['ownerId', 'crmId', 'channel', 'summary', 'createdAt'])
+        && data.keys().hasOnly(['ownerId', 'crmId', 'channel', 'summary', 'createdAt'])
+        && isValidId(data.ownerId)
+        && isValidId(data.crmId)
+        && data.channel in ['Email', 'Instagram DM', 'LinkedIn', 'WhatsApp', 'Call', 'Note']
+        && isValidString(data.summary, 1, 1500)
+        && data.createdAt is timestamp;
+    }
+
+    function isValidPitchDraft(data) {
+      return data.keys().hasAll(['ownerId', 'targetName', 'channel', 'tone', 'body', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'targetName', 'channel', 'tone', 'subject', 'body', 'serviceOffered', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidString(data.targetName, 1, 200)
+        && data.channel in ['Email', 'Instagram DM', 'LinkedIn', 'WhatsApp']
+        && data.tone in ['Professional', 'Friendly', 'Short and Direct', 'Personalized', 'Persuasive but Respectful']
+        && (!('subject' in data) || isValidString(data.subject, 0, 240))
+        && isValidString(data.body, 1, 4000)
+        && (!('serviceOffered' in data) || isValidString(data.serviceOffered, 0, 120))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['businessId', 'companyName', 'title', 'description', 'category', 'requiredSkills', 'budgetMin', 'budgetMax', 'currency', 'workMode', 'projectType', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['businessId', 'companyName', 'title', 'description', 'category', 'requiredSkills', 'budgetMin', 'budgetMax', 'currency', 'deadline', 'experienceLevel', 'location', 'workMode', 'projectType', 'status', 'createdAt', 'updatedAt'])
+        && isValidId(data.businessId)
+        && isValidString(data.companyName, 1, 160)
+        && isValidString(data.title, 3, 200)
+        && isValidString(data.description, 10, 5000)
+        && isValidString(data.category, 1, 100)
+        && isValidStringList(data.requiredSkills, 15)
+        && data.budgetMin is number && data.budgetMin >= 0
+        && data.budgetMax is number && data.budgetMax >= data.budgetMin
+        && data.currency in ['INR', 'USD']
+        && (!('deadline' in data) || isValidString(data.deadline, 0, 40))
+        && (!('experienceLevel' in data) || data.experienceLevel in ['Beginner', 'Intermediate', 'Senior', 'Any'])
+        && (!('location' in data) || isValidString(data.location, 0, 120))
+        && data.workMode in ['Remote', 'On-site', 'Hybrid']
+        && data.projectType in ['Fixed Price', 'Hourly', 'Retainer']
+        && data.status in ['Draft', 'Published', 'Paused', 'Closed', 'Completed']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProposal(data) {
+      return data.keys().hasAll(['projectId', 'projectTitle', 'businessId', 'freelancerId', 'freelancerName', 'coverLetter', 'proposedPrice', 'currency', 'deliveryDays', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['projectId', 'projectTitle', 'businessId', 'freelancerId', 'freelancerName', 'coverLetter', 'portfolioLink', 'proposedPrice', 'currency', 'deliveryDays', 'relevantExperience', 'status', 'createdAt', 'updatedAt'])
+        && isValidId(data.projectId)
+        && isValidString(data.projectTitle, 1, 200)
+        && isValidId(data.businessId)
+        && isValidId(data.freelancerId)
+        && isValidString(data.freelancerName, 1, 120)
+        && isValidString(data.coverLetter, 10, 4000)
+        && (!('portfolioLink' in data) || isValidString(data.portfolioLink, 0, 400))
+        && data.proposedPrice is number && data.proposedPrice >= 0
+        && data.currency in ['INR', 'USD']
+        && data.deliveryDays is number && data.deliveryDays >= 1
+        && (!('relevantExperience' in data) || isValidString(data.relevantExperience, 0, 1500))
+        && data.status in ['Submitted', 'Viewed', 'Shortlisted', 'Accepted', 'Rejected', 'Withdrawn']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidConversation(data) {
+      return data.keys().hasAll(['businessId', 'freelancerId', 'businessName', 'freelancerName', 'lastMessage', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['businessId', 'freelancerId', 'businessName', 'freelancerName', 'projectId', 'projectTitle', 'lastMessage', 'lastSenderId', 'createdAt', 'updatedAt'])
+        && isValidId(data.businessId)
+        && isValidId(data.freelancerId)
+        && isValidString(data.businessName, 1, 160)
+        && isValidString(data.freelancerName, 1, 120)
+        && (!('projectId' in data) || isValidString(data.projectId, 0, 128))
+        && (!('projectTitle' in data) || isValidString(data.projectTitle, 0, 200))
+        && isValidString(data.lastMessage, 0, 1000)
+        && (!('lastSenderId' in data) || isValidString(data.lastSenderId, 0, 128))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['senderId', 'senderName', 'body', 'createdAt'])
+        && data.keys().hasOnly(['senderId', 'senderName', 'body', 'createdAt'])
+        && isValidId(data.senderId)
+        && isValidString(data.senderName, 1, 120)
+        && isValidString(data.body, 1, 3000)
+        && data.createdAt is timestamp;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['userId', 'type', 'title', 'message', 'read', 'createdAt'])
+        && data.keys().hasOnly(['userId', 'type', 'title', 'message', 'read', 'createdAt'])
+        && isValidId(data.userId)
+        && data.type in ['application', 'proposal', 'message', 'project', 'followup', 'opportunity']
+        && isValidString(data.title, 1, 160)
+        && isValidString(data.message, 1, 600)
+        && data.read is bool
+        && data.createdAt is timestamp;
+    }
+
+    function isValidNotificationPref(data) {
+      return data.keys().hasAll(['userId', 'newApplications', 'proposalUpdates', 'messages', 'followUpReminders', 'opportunityAlerts', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'newApplications', 'proposalUpdates', 'messages', 'followUpReminders', 'opportunityAlerts', 'updatedAt'])
+        && isValidId(data.userId)
+        && data.newApplications is bool
+        && data.proposalUpdates is bool
+        && data.messages is bool
+        && data.followUpReminders is bool
+        && data.opportunityAlerts is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAbuseReport(data) {
+      return data.keys().hasAll(['reporterId', 'targetType', 'targetId', 'reason', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['reporterId', 'targetType', 'targetId', 'reason', 'details', 'status', 'createdAt', 'updatedAt'])
+        && isValidId(data.reporterId)
+        && data.targetType in ['lead', 'opportunity', 'project', 'user']
+        && isValidString(data.targetId, 1, 128)
+        && isValidString(data.reason, 3, 200)
+        && (!('details' in data) || isValidString(data.details, 0, 1500))
+        && data.status in ['open', 'reviewed', 'resolved', 'dismissed']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['actorId', 'action', 'targetType', 'targetId', 'createdAt'])
+        && data.keys().hasOnly(['actorId', 'actorEmail', 'action', 'targetType', 'targetId', 'details', 'createdAt'])
+        && isValidId(data.actorId)
+        && (!('actorEmail' in data) || isValidString(data.actorEmail, 0, 254))
+        && isValidString(data.action, 2, 120)
+        && isValidString(data.targetType, 1, 80)
+        && isValidString(data.targetId, 1, 128)
+        && (!('details' in data) || isValidString(data.details, 0, 1000))
+        && data.createdAt is timestamp;
+    }
+
+    // --- Collection Match Rules ---
+
+    // 1. Users (PII Isolation: owner or admin only)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isVerified() && isValidId(userId) && isOwner(userId)
+        && isValidUserAccount(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().role in ['freelancer', 'business']
+        && incoming().status == 'active'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(userId) && isValidUserAccount(incoming()) && (
+        isAdmin() ||
+        (isOwner(userId)
+          && incoming().uid == existing().uid
+          && incoming().email == existing().email
+          && incoming().role == existing().role
+          && incoming().status == existing().status
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'onboardingCompleted', 'updatedAt']))
+      );
+      allow delete: if isValidId(userId) && (isOwner(userId) || isAdmin());
+    }
+
+    // 2. Admins Registry
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow write: if false;
+    }
+
+    // 3. Freelancer Profiles (Marketplace directory)
+    match /freelancerProfiles/{userId} {
+      allow get: if isValidId(userId) && isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isVerified() && isValidId(userId) && isOwner(userId)
+        && isValidFreelancerProfile(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(userId) && isValidFreelancerProfile(incoming()) && (
+        isAdmin() ||
+        (isOwner(userId)
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'photoURL', 'headline', 'description', 'skills', 'services', 'experienceLevel', 'portfolioLinks', 'website', 'country', 'state', 'city', 'workPreference', 'minBudget', 'preferredIndustries', 'updatedAt']))
+      );
+      allow delete: if isValidId(userId) && (isOwner(userId) || isAdmin());
+    }
+
+    // 4. Business Profiles
+    match /businessProfiles/{userId} {
+      allow get: if isValidId(userId) && isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isVerified() && isValidId(userId) && isOwner(userId)
+        && isValidBusinessProfile(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(userId) && isValidBusinessProfile(incoming()) && (
+        isAdmin() ||
+        (isOwner(userId)
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['companyName', 'industry', 'description', 'website', 'country', 'state', 'city', 'logoURL', 'size', 'updatedAt']))
+      );
+      allow delete: if isValidId(userId) && (isOwner(userId) || isAdmin());
+    }
+
+    // 5. Business Leads (Owner or Admin)
+    match /leads/{leadId} {
+      allow get: if isValidId(leadId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(leadId) && isValidBusinessLead(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(leadId) && isValidBusinessLead(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['opportunityScore', 'confidenceScore', 'suggestedServices', 'aiExplanation', 'status', 'updatedAt']))
+      );
+      allow delete: if isValidId(leadId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 6. Hiring Opportunities (Owner or Admin)
+    match /opportunities/{opportunityId} {
+      allow get: if isValidId(opportunityId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(opportunityId) && isValidHiringOpportunity(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(opportunityId) && isValidHiringOpportunity(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['aiClassification', 'confidenceScore', 'requiredService', 'skillsRequired', 'updatedAt']))
+      );
+      allow delete: if isValidId(opportunityId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 7. Lead Analyses
+    match /leadAnalyses/{analysisId} {
+      allow get: if isValidId(analysisId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(analysisId) && isValidLeadAnalysis(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(analysisId) && isValidLeadAnalysis(incoming()) && isAdmin();
+      allow delete: if isValidId(analysisId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 8. Saved Leads
+    match /savedLeads/{savedId} {
+      allow get: if isValidId(savedId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(savedId) && isValidSavedLead(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(savedId) && isValidSavedLead(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['notes', 'updatedAt']))
+      );
+      allow delete: if isValidId(savedId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 9. CRM Pipelines
+    match /crmPipelines/{crmId} {
+      allow get: if isValidId(crmId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(crmId) && isValidCrmItem(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(crmId) && isValidCrmItem(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && existing().status != 'Closed'
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'estimatedValue', 'followUpDate', 'notes', 'updatedAt']))
+      );
+      allow delete: if isValidId(crmId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 10. CRM Activities
+    match /crmActivities/{activityId} {
+      allow get: if isValidId(activityId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(activityId) && isValidCrmActivity(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && exists(/databases/$(database)/documents/crmPipelines/$(incoming().crmId))
+        && get(/databases/$(database)/documents/crmPipelines/$(incoming().crmId)).data.ownerId == request.auth.uid;
+      allow update: if false;
+      allow delete: if isValidId(activityId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 11. Pitch Drafts
+    match /pitchDrafts/{draftId} {
+      allow get: if isValidId(draftId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(draftId) && isValidPitchDraft(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(draftId) && isValidPitchDraft(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['subject', 'body', 'tone', 'channel', 'updatedAt']))
+      );
+      allow delete: if isValidId(draftId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 12. Marketplace Projects
+    match /projects/{projectId} {
+      allow get: if isValidId(projectId) && (
+        existing().status == 'Published' || isOwner(existing().businessId) || isAdmin()
+      );
+      allow list: if existing().status == 'Published' || (isSignedIn() && (existing().businessId == request.auth.uid || isAdmin()));
+      allow create: if isVerified() && isValidId(projectId) && isValidProject(incoming())
+        && incoming().businessId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(projectId) && isValidProject(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().businessId)
+          && existing().status != 'Completed'
+          && incoming().businessId == existing().businessId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'category', 'requiredSkills', 'budgetMin', 'budgetMax', 'currency', 'deadline', 'experienceLevel', 'location', 'workMode', 'projectType', 'status', 'updatedAt']))
+      );
+      allow delete: if isValidId(projectId) && (isOwner(existing().businessId) || isAdmin());
+    }
+
+    // 13. Project Proposals
+    match /proposals/{proposalId} {
+      allow get: if isValidId(proposalId) && (
+        isOwner(existing().freelancerId) || isOwner(existing().businessId) || isAdmin()
+      );
+      allow list: if isSignedIn() && (
+        existing().freelancerId == request.auth.uid ||
+        existing().businessId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isVerified() && isValidId(proposalId) && isValidProposal(incoming())
+        && incoming().freelancerId == request.auth.uid
+        && incoming().status == 'Submitted'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && exists(/databases/$(database)/documents/projects/$(incoming().projectId))
+        && get(/databases/$(database)/documents/projects/$(incoming().projectId)).data.status == 'Published'
+        && get(/databases/$(database)/documents/projects/$(incoming().projectId)).data.businessId == incoming().businessId;
+      allow update: if isVerified() && isValidId(proposalId) && isValidProposal(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().freelancerId)
+          && existing().status in ['Submitted', 'Viewed', 'Shortlisted']
+          && incoming().status == 'Withdrawn'
+          && incoming().projectId == existing().projectId
+          && incoming().businessId == existing().businessId
+          && incoming().freelancerId == existing().freelancerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
+        (isOwner(existing().businessId)
+          && existing().status in ['Submitted', 'Viewed', 'Shortlisted']
+          && incoming().status in ['Viewed', 'Shortlisted', 'Accepted', 'Rejected']
+          && incoming().projectId == existing().projectId
+          && incoming().businessId == existing().businessId
+          && incoming().freelancerId == existing().freelancerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']))
+      );
+      allow delete: if isValidId(proposalId) && (isOwner(existing().freelancerId) || isAdmin());
+    }
+
+    // 14. Conversations & Messages (Master Gate Pattern)
+    match /conversations/{conversationId} {
+      allow get: if isValidId(conversationId) && (
+        isOwner(existing().businessId) || isOwner(existing().freelancerId) || isAdmin()
+      );
+      allow list: if isSignedIn() && (
+        existing().businessId == request.auth.uid ||
+        existing().freelancerId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isVerified() && isValidId(conversationId) && isValidConversation(incoming())
+        && (incoming().businessId == request.auth.uid || incoming().freelancerId == request.auth.uid)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(conversationId) && isValidConversation(incoming()) && (
+        isAdmin() ||
+        ((isOwner(existing().businessId) || isOwner(existing().freelancerId))
+          && incoming().businessId == existing().businessId
+          && incoming().freelancerId == existing().freelancerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['lastMessage', 'lastSenderId', 'updatedAt']))
+      );
+      allow delete: if isValidId(conversationId) && isAdmin();
+
+      match /messages/{messageId} {
+        allow get: if isValidId(conversationId) && isValidId(messageId) && (
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.businessId == request.auth.uid ||
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.freelancerId == request.auth.uid ||
+          isAdmin()
+        );
+        allow list: if isSignedIn() && (
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.businessId == request.auth.uid ||
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.freelancerId == request.auth.uid ||
+          isAdmin()
+        );
+        allow create: if isVerified() && isValidId(conversationId) && isValidId(messageId) && isValidMessage(incoming())
+          && incoming().senderId == request.auth.uid
+          && incoming().createdAt == request.time
+          && exists(/databases/$(database)/documents/conversations/$(conversationId))
+          && (
+            get(/databases/$(database)/documents/conversations/$(conversationId)).data.businessId == request.auth.uid ||
+            get(/databases/$(database)/documents/conversations/$(conversationId)).data.freelancerId == request.auth.uid
+          );
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+    }
+
+    // 15. Notifications
+    match /notifications/{notificationId} {
+      allow get: if isValidId(notificationId) && (isOwner(existing().userId) || isAdmin());
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(notificationId) && isValidNotification(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if isVerified() && isValidId(notificationId) && isValidNotification(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().userId)
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().diff(existing()).affectedKeys().hasOnly(['read']))
+      );
+      allow delete: if isValidId(notificationId) && (isOwner(existing().userId) || isAdmin());
+    }
+
+    // 16. Notification Preferences
+    match /notificationPreferences/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isVerified() && isValidId(userId) && isOwner(userId)
+        && isValidNotificationPref(incoming())
+        && incoming().userId == request.auth.uid
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(userId) && isValidNotificationPref(incoming()) && (
+        isAdmin() ||
+        (isOwner(userId)
+          && incoming().userId == existing().userId
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['newApplications', 'proposalUpdates', 'messages', 'followUpReminders', 'opportunityAlerts', 'updatedAt']))
+      );
+      allow delete: if isValidId(userId) && (isOwner(userId) || isAdmin());
+    }
+
+    // 17. Abuse Reports
+    match /abuseReports/{reportId} {
+      allow get: if isValidId(reportId) && (isOwner(existing().reporterId) || isAdmin());
+      allow list: if isSignedIn() && (existing().reporterId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(reportId) && isValidAbuseReport(incoming())
+        && incoming().reporterId == request.auth.uid
+        && incoming().status == 'open'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(reportId) && isValidAbuseReport(incoming()) && isAdmin();
+      allow delete: if isValidId(reportId) && isAdmin();
+    }
+
+    // 18. Audit Logs
+    match /auditLogs/{logId} {
+      allow get: if isValidId(logId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(logId) && isAdmin() && isValidAuditLog(incoming())
+        && incoming().actorId == request.auth.uid
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

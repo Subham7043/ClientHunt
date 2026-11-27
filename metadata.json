@@ -1,0 +1,6 @@
+{
+  "name": "ClientHunt AI",
+  "description": "AI-powered client discovery, explicit hiring opportunity detection, personalized pitch generation, CRM, and freelance marketplace.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

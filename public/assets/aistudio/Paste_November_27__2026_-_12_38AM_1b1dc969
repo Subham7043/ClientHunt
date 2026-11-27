@@ -1,0 +1,1118 @@
+# MASTER DEVELOPMENT PROMPT — CLIENTHUNT AI
+
+Build a complete, modern, production-oriented SaaS web application named **ClientHunt AI**.
+
+## 1. Product vision
+
+ClientHunt AI is an AI-powered client discovery, lead generation, and freelance hiring platform.
+
+The main problem we solve is that freelancers spend hours searching Google, Google Maps, LinkedIn, Instagram, business websites, and other platforms to find potential clients. They manually inspect businesses, search for contact details, identify opportunities, and write personalized pitches.
+
+ClientHunt AI brings this workflow into one platform.
+
+The platform must support two separate discovery systems:
+
+**A. Business Lead Discovery**
+
+Find businesses that could potentially benefit from freelancers' services.
+
+Example:
+- A restaurant may need social media management or video editing.
+- A coaching institute may need a website or digital marketing.
+- A real estate agency may need graphic design or lead-generation services.
+- A startup may need web development, app development, or AI automation.
+
+Important: Never claim a business is hiring or needs a service unless there is actual evidence. Clearly label these as AI-suggested potential opportunities.
+
+**B. Explicit Hiring Opportunities**
+
+Find publicly available posts, listings, or project requirements where a person or company explicitly says they are looking for a freelancer, developer, designer, editor, agency, or other professional.
+
+Examples:
+- "Looking for a video editor."
+- "Need a freelance web developer."
+- "Hiring a graphic designer for our startup."
+- "Looking for an SEO specialist."
+
+AI must identify genuine hiring intent and separate freelance projects from permanent jobs, internships, and irrelevant discussions.
+
+**Main objective:** Help freelancers discover relevant opportunities, understand potential clients, generate personalized pitches, manage leads, and win projects.
+
+The platform should initially focus on Jaipur and Rajasthan, then expand across India and internationally.
+
+---
+
+## 2. Target users and roles
+
+Create three user roles:
+
+### Role 1: Freelancer
+
+Freelancers can:
+- Create a professional profile.
+- Select their services and skills.
+- Choose their preferred locations.
+- Discover potential business leads.
+- Find explicit hiring opportunities.
+- Filter and save leads.
+- Analyze businesses using AI.
+- Generate personalized pitches.
+- Manage their lead pipeline.
+- Apply for projects posted on ClientHunt.
+- Track applications and conversations.
+- View performance analytics.
+
+### Role 2: Business / Client
+
+Businesses can:
+- Register their business.
+- Create a company profile.
+- Post freelance projects.
+- Specify requirements, budget, deadline, and location.
+- Receive proposals from freelancers.
+- Review portfolios.
+- Shortlist applicants.
+- Accept or reject proposals.
+- Communicate with freelancers.
+- Manage their posted projects.
+
+### Role 3: Admin
+
+Admin can:
+- View platform analytics.
+- Manage users.
+- Manage business accounts.
+- Manage leads and opportunities.
+- Monitor API integrations.
+- Configure data providers.
+- Monitor API usage and credits.
+- Review reported content.
+- Manage subscriptions and platform settings.
+- View audit logs.
+
+Never allow users to assign themselves the admin role. Admin permissions must be granted securely from the backend.
+
+---
+
+## 3. Technology stack
+
+Use the following technology wherever supported by Google AI Studio Build:
+
+**Frontend**
+- React
+- TypeScript
+- Next.js architecture where supported
+- Tailwind CSS
+- Lucide icons
+- Responsive design
+
+**Backend**
+- Secure server-side API routes or functions
+- Node.js-compatible backend
+- RESTful APIs
+- Background processing for longer discovery tasks
+
+**Database and authentication**
+- Firebase Authentication
+- Cloud Firestore
+- Firestore Security Rules
+- Firebase App Check where supported
+
+**Artificial Intelligence**
+- Google Gemini API for classification, analysis, recommendations, and pitch generation.
+
+**Data discovery**
+- Scrapingdog as the primary discovery provider.
+- Optional independent providers such as Foursquare, Hunter.io, Brave Search API, and OpenStreetMap.
+
+Do not expose API keys, Firebase Admin credentials, or other secrets in frontend code.
+
+If any requested technology is unavailable in the current environment, use a compatible alternative and explain the change. Do not pretend an integration is connected when it is not.
+
+---
+
+## 4. Website design and visual identity
+
+Create a premium SaaS interface.
+
+**Brand name:** ClientHunt AI
+
+**Tagline:** Find Clients. Discover Opportunities. Grow Your Freelance Business.
+
+Design direction:
+- Modern, premium, professional SaaS dashboard.
+- Deep navy and white as primary colors.
+- Electric blue and violet accents.
+- Clean typography similar to Inter.
+- Rounded cards and subtle shadows.
+- Smooth hover effects and transitions.
+- Professional charts and data visualizations.
+- Clean spacing and consistent layouts.
+- Light mode and dark mode.
+- Fully responsive on desktop, tablet, and mobile.
+
+Avoid a generic template-like appearance.
+
+Use meaningful empty states, loading indicators, skeleton loaders, error messages, confirmation dialogs, and toast notifications.
+
+Create a consistent component library for buttons, cards, forms, tables, filters, badges, charts, navigation, and modals.
+
+---
+
+## 5. Public website pages
+
+Create the following pages:
+
+### Home page
+
+Include:
+- Hero section with headline: "Stop Searching for Clients. Start Finding Them."
+- Supporting description of ClientHunt AI.
+- Primary CTA: Explore Opportunities.
+- Secondary CTA: Start Finding Clients.
+- Product preview/dashboard mockup.
+- How It Works section.
+- Business Discovery feature.
+- AI Opportunity Detection feature.
+- AI Pitch Generator feature.
+- Freelance Marketplace feature.
+- Benefits for freelancers.
+- Benefits for businesses.
+- Pricing section.
+- FAQ section.
+- Footer with contact, terms, privacy, and social links.
+
+### Explore Opportunities
+
+Show available opportunities with:
+- Opportunity title.
+- Company/business name.
+- Required service.
+- Location.
+- Budget, if publicly available.
+- Source.
+- Date discovered or published, when available.
+- Opportunity type.
+- AI relevance score.
+- Original source link.
+
+### Find Businesses
+
+Provide a business discovery interface with:
+- Search by business name.
+- Search by industry.
+- Search by location.
+- Search by service opportunity.
+- Map view and list view.
+- Filters for website, social presence, business category, and contact availability.
+
+### Browse Projects
+
+Show projects posted directly by businesses on ClientHunt AI.
+
+### Authentication
+
+Create:
+- Register.
+- Login.
+- Forgot password.
+- Email verification where supported.
+- Role-based onboarding.
+
+During registration, users must choose whether they are joining as a Freelancer or Business.
+
+---
+
+## 6. Freelancer dashboard
+
+Create a professional dashboard with a sidebar.
+
+Sidebar navigation:
+
+1. Overview
+2. Discover Leads
+3. Hiring Opportunities
+4. Business Explorer
+5. AI Lead Analyzer
+6. AI Pitch Generator
+7. Saved Leads
+8. My CRM
+9. Browse Projects
+10. My Proposals
+11. Messages
+12. Analytics
+13. My Profile
+14. Settings
+
+### Dashboard overview
+
+Show real database-driven metrics:
+- Total leads discovered.
+- New opportunities.
+- Saved leads.
+- Contacted businesses.
+- Replies received.
+- Projects won.
+- Conversion rate.
+- Recent activity.
+
+Do not display invented statistics. If the account has no data, show zero values and useful onboarding guidance.
+
+Include recent leads, opportunity trends, and a quick discovery search.
+
+### Freelancer profile
+
+Fields:
+- Full name.
+- Profile photo.
+- Professional headline.
+- Description.
+- Skills.
+- Services offered.
+- Experience level.
+- Portfolio links.
+- Website.
+- Preferred country.
+- State.
+- City.
+- Remote/on-site preference.
+- Minimum project budget.
+- Preferred industries.
+
+Allow freelancers to edit their profiles.
+
+---
+
+## 7. Business Lead Discovery Engine
+
+This is one of the most important modules.
+
+Create a search interface with the following filters:
+
+**Location**
+- Country.
+- State.
+- City.
+- Local area.
+
+**Business category**
+- Restaurants.
+- Cafes.
+- Hotels.
+- Real estate.
+- Coaching institutes.
+- Educational institutions.
+- Startups.
+- Clothing brands.
+- Gyms.
+- Healthcare.
+- E-commerce.
+- Marketing agencies.
+- Salons.
+- Other businesses.
+
+**Freelancer service category**
+- Video editing.
+- Graphic design.
+- Web development.
+- App development.
+- Digital marketing.
+- SEO.
+- Social media management.
+- Content writing.
+- UI/UX design.
+- AI automation.
+- Data analytics.
+- Cloud and DevOps.
+- Cybersecurity.
+- Photography.
+- Other services.
+
+**Additional filters**
+- Has website.
+- Has Instagram profile.
+- Has publicly listed email.
+- Has publicly listed phone.
+- Business size.
+- Source.
+- Opportunity score.
+- Recently discovered.
+
+Allow users to combine filters.
+
+Example search:
+
+Location: Jaipur  
+Business: Restaurants  
+Service: Social Media Management
+
+The platform should discover relevant businesses and return structured results.
+
+### Business lead cards
+
+Each result should show:
+- Business name.
+- Business category.
+- Address or location.
+- Website.
+- Public social links when available.
+- Public contact details when available.
+- Source of the information.
+- Discovery date.
+- AI opportunity score.
+- Suggested services.
+- Short AI-generated explanation.
+
+Buttons:
+- View Details.
+- Analyze with AI.
+- Generate Pitch.
+- Save Lead.
+- Add to CRM.
+- Open Original Source.
+
+Never fabricate business details or contact information.
+
+---
+
+## 8. Explicit Hiring Opportunity Detection
+
+Build a separate module for actual hiring intent.
+
+Search publicly accessible and permitted sources for posts and listings containing hiring requirements.
+
+Examples of keywords:
+- Looking for a freelancer.
+- Need a video editor.
+- Hiring a web developer.
+- Need a graphic designer.
+- Looking for an SEO expert.
+- Freelance project available.
+- Need an app developer.
+- Looking for a social media manager.
+
+AI should classify each discovered item into:
+
+1. Freelance Project.
+2. Contract Work.
+3. Full-Time Job.
+4. Part-Time Job.
+5. Internship.
+6. Agency Requirement.
+7. Irrelevant Content.
+
+Extract:
+- Original post text.
+- Company or person name, if available.
+- Required service.
+- Skills required.
+- Budget, if explicitly mentioned.
+- Location.
+- Remote/on-site/hybrid.
+- Deadline, if mentioned.
+- Publication date, if available.
+- Source name.
+- Original URL.
+- AI classification.
+- Confidence score.
+
+Do not invent a budget, deadline, location, or company name.
+
+Show the original source text and a link to the original listing so users can verify the information.
+
+---
+
+## 9. Multi-source discovery architecture
+
+Use a modular provider architecture.
+
+**Scrapingdog must be the PRIMARY discovery provider.**
+
+Implement independent server-side adapters for supported Scrapingdog endpoints.
+
+Potential capabilities, subject to the current Scrapingdog API documentation and account access:
+- Google Search.
+- Google Light Search.
+- Google Maps Search.
+- Supported job search endpoints.
+- Supported public post or page scraping endpoints.
+
+Use the official documentation to verify endpoint names, parameters, response formats, credit costs, and limitations before implementing each adapter.
+
+Do not assume every endpoint is included in the user's plan.
+
+### Optional secondary providers
+
+Implement these as optional providers, not mandatory dependencies:
+
+**Gemini API**
+- Classify hiring intent.
+- Analyze business profiles.
+- Generate service recommendations.
+- Create personalized pitches.
+- Summarize public business information.
+
+**Foursquare Places API**
+- Supplementary business discovery.
+- Business categories and location information where available.
+
+**Hunter.io**
+- Find and verify publicly available professional business email addresses where permitted.
+- Display verification status.
+- Never invent email addresses.
+
+**Brave Search API**
+- Optional supplementary web discovery.
+
+**OpenStreetMap**
+- Geographic information and map visualization.
+- Respect public service usage policies and rate limits.
+
+### Important platform restrictions
+
+Do not implement unauthorized scraping of LinkedIn or Instagram.
+
+Use official APIs, approved integrations, authorized user-provided information, or permitted public links only.
+
+Do not bypass login screens, CAPTCHAs, paywalls, rate limits, access controls, or platform restrictions.
+
+Never present restricted or unavailable data as successfully retrieved.
+
+### Provider architecture
+
+Each provider must have:
+- Its own server-side adapter.
+- Its own configuration.
+- Independent error handling.
+- Rate limiting.
+- Usage tracking.
+- Response normalization.
+- Retry logic where appropriate.
+- Provider health status.
+
+If one provider fails, the rest of the platform should continue working.
+
+Create an Admin Data Sources page where the admin can:
+- View available providers.
+- Configure API credentials securely.
+- Enable or disable providers.
+- Check connection status.
+- View API usage.
+- Monitor credit consumption.
+- View errors and last successful sync.
+- See which providers are not configured.
+
+Never expose secret keys in browser responses or logs.
+
+---
+
+## 10. AI Business Analyzer
+
+When a freelancer opens a business lead, provide an AI analysis page.
+
+Analyze only the publicly retrieved information supplied to Gemini.
+
+Show:
+
+**Business Overview**
+- Business category.
+- Location.
+- Website/social presence.
+- Publicly visible information.
+
+**Online Presence Analysis**
+- Website availability.
+- Social media presence.
+- Public content quality observations.
+- Visible areas where the business could improve.
+
+**Potential Freelance Opportunities**
+Examples:
+- Website redesign.
+- Social media content.
+- Video editing.
+- Graphic design.
+- SEO.
+- Branding.
+- Digital advertising.
+
+**AI Recommendation**
+Explain why the suggested service could be relevant.
+
+**Opportunity Score: 0–100**
+
+The score should be explainable and based on configurable factors such as:
+- Relevance to the freelancer's service.
+- Public evidence of an improvement opportunity.
+- Business category fit.
+- Contact availability.
+- Data freshness.
+
+Show a separate AI confidence score.
+
+Important:
+- Opportunity score is not a business quality rating.
+- Do not assume that a business is actively looking for a freelancer.
+- Separate verified facts from AI-generated suggestions.
+- Show the evidence behind important recommendations.
+- Allow users to report inaccurate information.
+
+---
+
+## 11. AI Pitch Generator
+
+Create a dedicated pitch generator.
+
+Users select:
+- A business lead or hiring opportunity.
+- Their service.
+- Their relevant skills.
+- Their portfolio link.
+- Their preferred communication style.
+
+Generate personalized drafts for:
+
+1. Email.
+2. Instagram DM.
+3. LinkedIn message.
+4. WhatsApp message.
+
+Tone options:
+- Professional.
+- Friendly.
+- Short and direct.
+- Personalized.
+- Persuasive but respectful.
+
+Every pitch should:
+- Mention a relevant business observation supported by available evidence.
+- Explain the freelancer's service.
+- Include a clear value proposition.
+- Have a natural call to action.
+- Avoid fake claims and exaggerated promises.
+
+Provide:
+- Generate Pitch.
+- Regenerate.
+- Edit.
+- Copy.
+- Save Draft.
+
+Do not automatically send mass unsolicited messages. The freelancer must review and manually send the draft through their chosen channel.
+
+---
+
+## 12. Freelancer CRM and Lead Management
+
+Build a proper CRM system.
+
+Lead pipeline statuses:
+1. New.
+2. Interested.
+3. Saved.
+4. Contacted.
+5. Replied.
+6. Negotiating.
+7. Converted.
+8. Not Interested.
+9. Closed.
+
+Allow freelancers to:
+- Change lead status.
+- Add notes.
+- Set follow-up dates.
+- Record communication history.
+- Add estimated deal value.
+- Track the source.
+- Search and filter leads.
+- View leads in a table and Kanban board.
+
+Create analytics:
+- Leads discovered.
+- Leads contacted.
+- Replies received.
+- Conversion rate.
+- Estimated pipeline value.
+- Projects won.
+
+Only show data belonging to the logged-in freelancer.
+
+---
+
+## 13. ClientHunt AI Freelance Marketplace
+
+Build a working internal marketplace where businesses and freelancers interact directly.
+
+### Business project posting
+
+A business can create a project with:
+- Project title.
+- Description.
+- Required category.
+- Required skills.
+- Budget or budget range.
+- Deadline.
+- Experience level.
+- Location.
+- Remote, on-site, or hybrid.
+- Project type.
+- Attachments, where supported.
+
+Project statuses:
+- Draft.
+- Published.
+- Paused.
+- Closed.
+- Completed.
+
+### Freelancer project applications
+
+Freelancers can apply with:
+- Proposal.
+- Portfolio link.
+- Proposed price.
+- Estimated delivery time.
+- Relevant experience.
+
+### Business application management
+
+Businesses can:
+- View applicants.
+- Open freelancer profiles.
+- Review portfolios.
+- Shortlist.
+- Accept.
+- Reject.
+- Contact applicants.
+
+Proposal statuses:
+- Submitted.
+- Viewed.
+- Shortlisted.
+- Accepted.
+- Rejected.
+- Withdrawn.
+
+### Messaging
+
+Create secure conversations between businesses and freelancers.
+
+Features:
+- Conversation list.
+- Message history.
+- Timestamps.
+- Unread message indicators.
+- Basic notification system.
+
+Only authorized conversation participants can read or send messages.
+
+Do not build fake payment functionality. If payments are not configured, show payment integration as unavailable rather than claiming that transactions are working.
+
+---
+
+## 14. Business dashboard
+
+Create a separate dashboard for business accounts.
+
+Sidebar:
+1. Overview.
+2. Post a Project.
+3. My Projects.
+4. Applications.
+5. Shortlisted Freelancers.
+6. Messages.
+7. Company Profile.
+8. Settings.
+
+Dashboard metrics:
+- Active projects.
+- Total applications.
+- Shortlisted freelancers.
+- Projects completed.
+
+All metrics must be database-driven.
+
+---
+
+## 15. Admin dashboard
+
+Create a secure admin dashboard.
+
+Sections:
+
+**Overview**
+- Total users.
+- Freelancer accounts.
+- Business accounts.
+- Active projects.
+- Total opportunities.
+- Reported content.
+
+**User Management**
+- View users.
+- Search users.
+- Suspend or reactivate accounts.
+- View account details.
+
+**Data Management**
+- View discovered businesses.
+- View hiring opportunities.
+- Review duplicates.
+- Remove inaccurate or reported records.
+
+**API Management**
+- Provider status.
+- API usage.
+- Credit consumption.
+- Error logs.
+- Integration configuration.
+
+**AI Monitoring**
+- AI analysis history.
+- Classification confidence.
+- Failed requests.
+- User feedback.
+
+**Platform Management**
+- Reports.
+- Subscription plans.
+- Audit logs.
+- Abuse monitoring.
+
+Admin actions must be validated by secure backend authorization.
+
+---
+
+## 16. Database design
+
+Use Cloud Firestore with a scalable and organized structure.
+
+Create suitable collections for:
+
+- users
+- freelancerProfiles
+- businessProfiles
+- leads
+- opportunities
+- leadSources
+- leadAnalyses
+- savedLeads
+- crmPipelines
+- crmActivities
+- projects
+- proposals
+- conversations
+- messages
+- notifications
+- subscriptions
+- providerConfigurations
+- providerUsage
+- auditLogs
+- abuseReports
+
+Every record should have appropriate:
+- Document ID.
+- Owner or related user ID.
+- Created timestamp.
+- Updated timestamp.
+- Status.
+- Source information where applicable.
+
+Create indexes for common filters and sorting.
+
+Implement Firestore Security Rules for role-based and owner-based access.
+
+Never trust a role or user ID supplied by the frontend without verifying it on the server.
+
+---
+
+## 17. Data normalization and deduplication
+
+Different providers may return the same business or opportunity.
+
+Create a common normalized data model.
+
+For business records, store:
+- Business name.
+- Category.
+- Location.
+- Address.
+- Website.
+- Public phone.
+- Public email.
+- Social links.
+- Source.
+- Source URL.
+- Provider ID.
+- Discovery timestamp.
+- Last verified timestamp.
+
+For hiring opportunities, store:
+- Title.
+- Original content.
+- Company.
+- Required service.
+- Budget.
+- Location.
+- Employment/project type.
+- Source URL.
+- Publication date.
+- Discovery date.
+- AI classification.
+- Confidence score.
+
+Implement deduplication using normalized business names, domain names, addresses, provider IDs, and source URLs where available.
+
+Do not merge records automatically when the match is uncertain. Flag them for review.
+
+Clearly distinguish:
+- Original source data.
+- AI-generated analysis.
+- User-added information.
+- Verified information.
+
+---
+
+## 18. Search experience
+
+Create a powerful global search.
+
+Users should be able to search for:
+- Businesses.
+- Hiring opportunities.
+- Projects.
+- Services.
+- Locations.
+
+Allow advanced filtering, sorting, and pagination.
+
+Include:
+- Recent searches.
+- Saved filters.
+- Search history.
+- Clear filters.
+- Export results where permitted.
+
+Use server-side pagination and avoid loading thousands of records at once.
+
+---
+
+## 19. Notifications
+
+Implement in-app notifications for:
+- New project applications.
+- Proposal status changes.
+- New messages.
+- Project updates.
+- Lead follow-up reminders.
+- Relevant new opportunities where alert preferences are enabled.
+
+Allow users to manage notification preferences.
+
+---
+
+## 20. Security, privacy, and compliance
+
+This application must follow secure development practices.
+
+Requirements:
+- Keep API keys server-side.
+- Validate all inputs.
+- Sanitize user-generated content.
+- Apply authentication and authorization.
+- Implement Firestore Security Rules.
+- Use rate limits for expensive AI and discovery endpoints.
+- Protect against unauthorized access.
+- Avoid exposing private user information.
+- Add user data deletion and account management workflows.
+- Maintain audit logs for sensitive admin actions.
+- Respect source platform terms and API policies.
+- Do not scrape private or restricted information.
+- Do not fabricate contacts, businesses, opportunities, or hiring intent.
+
+Publicly accessible information must still be handled according to the source's applicable terms and privacy requirements.
+
+---
+
+## 21. API usage and cost management
+
+The initial product should be optimized for a limited free API budget.
+
+Create a usage management system that tracks:
+- Provider name.
+- Requests made.
+- Credits consumed, if supplied by the provider.
+- Successful requests.
+- Failed requests.
+- Remaining quota, only when reliably available.
+- Last reset date, if provided by the provider.
+
+Implement:
+- Request limits.
+- Caching where permitted.
+- Duplicate search prevention.
+- Pagination.
+- Search result limits.
+- Retry controls.
+- Admin-configurable quotas.
+
+Do not promise unlimited free usage.
+
+If a provider has no API key configured, show a clear setup message instead of returning fake results.
+
+---
+
+## 22. Demo mode and empty states
+
+Create a demo mode for testing and presentation.
+
+Demo records must be clearly labelled as sample/demo data.
+
+Never mix demo records with real production records.
+
+If an API is not connected:
+- Show that the provider is not configured.
+- Explain which credential is needed.
+- Provide an admin setup path.
+- Do not pretend that live search succeeded.
+
+If there are no leads:
+- Show a useful empty state.
+- Provide a search action.
+- Explain how to connect a data source.
+
+---
+
+## 23. Required UI details
+
+Use consistent layouts throughout the application.
+
+**Tables**
+- Search.
+- Filters.
+- Sorting.
+- Pagination.
+- Responsive behavior.
+
+**Cards**
+- Clear titles.
+- Relevant metadata.
+- Status badges.
+- Action buttons.
+
+**Charts**
+- Lead discovery trends.
+- Opportunity categories.
+- CRM conversion funnel.
+- Monthly activity.
+
+**Maps**
+- Display discovered businesses using valid geographic coordinates.
+- Include location markers.
+- Allow switching between map and list views.
+- Never invent coordinates.
+
+**Forms**
+- Validation.
+- Clear error messages.
+- Required field indicators.
+- Save and cancel actions.
+
+Every button must perform its intended action. Remove decorative buttons that do nothing.
+
+---
+
+## 24. Implementation instructions
+
+Do not build only a static landing page or frontend mockup.
+
+Build a working application with connected navigation, authentication, database models, server-side API architecture, and real user workflows.
+
+Follow this implementation order:
+
+**Phase 1 — Foundation**
+- Create the design system.
+- Build public pages.
+- Build authentication.
+- Configure Firebase.
+- Create role-based onboarding.
+- Create protected dashboard layouts.
+
+**Phase 2 — Freelancer and Business Dashboards**
+- Implement freelancer profile.
+- Implement business profile.
+- Build dashboards.
+- Add navigation and settings.
+
+**Phase 3 — Discovery Engine**
+- Build search interface.
+- Implement Scrapingdog adapter.
+- Add normalized data storage.
+- Implement business and opportunity search.
+- Add deduplication and source attribution.
+
+**Phase 4 — AI Features**
+- Integrate Gemini securely.
+- Implement hiring classification.
+- Implement business analysis.
+- Implement opportunity scoring.
+- Implement pitch generation.
+
+**Phase 5 — CRM and Marketplace**
+- Build saved leads.
+- Build CRM pipeline.
+- Build business project posting.
+- Build proposals.
+- Build messaging and notifications.
+
+**Phase 6 — Admin and Production Readiness**
+- Build admin dashboard.
+- Implement API monitoring.
+- Implement security rules.
+- Add error handling.
+- Test user permissions.
+- Test all workflows.
+- Optimize responsive layouts.
+
+If the entire application cannot be completed in one generation, complete Phase 1 first, then continue implementing the remaining phases in the same project. Do not replace unfinished functionality with fake buttons or static screenshots.
+
+---
+
+## 25. Final acceptance criteria
+
+The application is considered successful only when:
+
+1. A freelancer can register and create a profile.
+2. A business can register independently.
+3. Users see only the dashboard appropriate to their role.
+4. A freelancer can search for businesses.
+5. A freelancer can search for explicit hiring opportunities.
+6. Real connected providers return source-attributed results.
+7. Results can be saved.
+8. AI can analyze available business information.
+9. AI can generate editable personalized pitches.
+10. Freelancers can manage leads through a CRM.
+11. Businesses can publish projects.
+12. Freelancers can submit proposals.
+13. Businesses can review and manage proposals.
+14. Users can communicate through authorized conversations.
+15. Admin can manage providers and monitor usage.
+16. Firestore Security Rules prevent unauthorized data access.
+17. The interface works on desktop and mobile.
+18. Loading, empty, and error states work properly.
+19. No fake live API integrations or fabricated data are presented as real.
+20. API credentials are never exposed in frontend code.
+
+## FINAL BUILD INSTRUCTION
+
+Start building **ClientHunt AI** now.
+
+First inspect the available Google AI Studio environment and create the application structure. Then implement the application phase by phase.
+
+Prioritize a polished, functional, connected product over a visually impressive but nonfunctional mockup.
+
+Use reusable components, clean TypeScript, organized folders, secure server-side integrations, clear error handling, and maintainable architecture.
+
+At the end of each implementation phase, verify the functionality and fix errors before moving forward.
+
+**The final result should feel like a professional SaaS product that freelancers can genuinely use to discover clients, find hiring opportunities, generate pitches, manage leads, and win freelance projects.**

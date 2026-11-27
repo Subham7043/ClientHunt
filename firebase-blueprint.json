@@ -1,0 +1,449 @@
+{
+  "entities": {
+    "UserAccount": {
+      "title": "UserAccount",
+      "description": "Authenticated user account metadata and role assignment.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 254 },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "role": { "type": "string", "enum": ["freelancer", "business", "admin"] },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "onboardingCompleted": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "displayName", "role", "status", "onboardingCompleted", "createdAt", "updatedAt"]
+    },
+    "AdminRegistry": {
+      "title": "AdminRegistry",
+      "description": "Trusted backend-managed admin UID registry.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 254 },
+        "grantedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "grantedAt"]
+    },
+    "FreelancerProfile": {
+      "title": "FreelancerProfile",
+      "description": "Freelancer public marketplace profile and service preferences.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "fullName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "headline": { "type": "string", "maxLength": 180 },
+        "description": { "type": "string", "maxLength": 2500 },
+        "skills": { "type": "array" },
+        "services": { "type": "array" },
+        "experienceLevel": { "type": "string", "enum": ["Beginner", "Intermediate", "Senior", "Agency"] },
+        "portfolioLinks": { "type": "array" },
+        "website": { "type": "string", "maxLength": 300 },
+        "country": { "type": "string", "maxLength": 80 },
+        "state": { "type": "string", "maxLength": 80 },
+        "city": { "type": "string", "maxLength": 80 },
+        "workPreference": { "type": "string", "enum": ["Remote", "On-site", "Hybrid", "Any"] },
+        "minBudget": { "type": "number" },
+        "preferredIndustries": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "fullName", "headline", "services", "skills", "experienceLevel", "country", "state", "city", "workPreference", "createdAt", "updatedAt"]
+    },
+    "BusinessProfile": {
+      "title": "BusinessProfile",
+      "description": "Business account company profile.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "companyName": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "industry": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 2500 },
+        "website": { "type": "string", "maxLength": 300 },
+        "country": { "type": "string", "maxLength": 80 },
+        "state": { "type": "string", "maxLength": 80 },
+        "city": { "type": "string", "maxLength": 80 },
+        "logoURL": { "type": "string", "maxLength": 500 },
+        "size": { "type": "string", "enum": ["Solo", "2-10", "11-50", "51-200", "200+"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "companyName", "industry", "country", "state", "city", "size", "createdAt", "updatedAt"]
+    },
+    "BusinessLead": {
+      "title": "BusinessLead",
+      "description": "Normalized business discovery lead owned by a user.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "businessName": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 100 },
+        "location": { "type": "string", "maxLength": 200 },
+        "address": { "type": "string", "maxLength": 400 },
+        "country": { "type": "string", "maxLength": 80 },
+        "state": { "type": "string", "maxLength": 80 },
+        "city": { "type": "string", "maxLength": 80 },
+        "website": { "type": "string", "maxLength": 400 },
+        "publicPhone": { "type": "string", "maxLength": 60 },
+        "publicEmail": { "type": "string", "maxLength": 254 },
+        "instagramUrl": { "type": "string", "maxLength": 400 },
+        "source": { "type": "string", "maxLength": 80 },
+        "sourceUrl": { "type": "string", "maxLength": 600 },
+        "providerId": { "type": "string", "maxLength": 140 },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "hasWebsite": { "type": "boolean" },
+        "hasInstagram": { "type": "boolean" },
+        "opportunityScore": { "type": "number" },
+        "confidenceScore": { "type": "number" },
+        "suggestedServices": { "type": "array" },
+        "aiExplanation": { "type": "string", "maxLength": 1000 },
+        "isDemo": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["active", "archived", "flagged"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "businessName", "category", "location", "source", "isDemo", "status", "createdAt", "updatedAt"]
+    },
+    "HiringOpportunity": {
+      "title": "HiringOpportunity",
+      "description": "Explicit hiring opportunity listing discovered and classified.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "originalText": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "companyName": { "type": "string", "maxLength": 160 },
+        "requiredService": { "type": "string", "maxLength": 120 },
+        "skillsRequired": { "type": "array" },
+        "budget": { "type": "string", "maxLength": 120 },
+        "location": { "type": "string", "maxLength": 160 },
+        "workMode": { "type": "string", "maxLength": 60 },
+        "deadline": { "type": "string", "maxLength": 80 },
+        "publishedAt": { "type": "string", "maxLength": 80 },
+        "sourceName": { "type": "string", "maxLength": 100 },
+        "sourceUrl": { "type": "string", "maxLength": 600 },
+        "aiClassification": { "type": "string", "enum": ["Freelance Project", "Contract Work", "Full-Time Job", "Part-Time Job", "Internship", "Agency Requirement", "Irrelevant Content"] },
+        "confidenceScore": { "type": "number" },
+        "isDemo": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "title", "originalText", "sourceName", "sourceUrl", "aiClassification", "confidenceScore", "isDemo", "createdAt", "updatedAt"]
+    },
+    "LeadAnalysis": {
+      "title": "LeadAnalysis",
+      "description": "AI analysis report for a specific business lead.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "leadId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "businessName": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "onlinePresenceSummary": { "type": "string", "maxLength": 2000 },
+        "contentObservations": { "type": "string", "maxLength": 2000 },
+        "improvementAreas": { "type": "array" },
+        "potentialOpportunities": { "type": "array" },
+        "aiRecommendation": { "type": "string", "maxLength": 2000 },
+        "opportunityScore": { "type": "number" },
+        "confidenceScore": { "type": "number" },
+        "evidence": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "leadId", "businessName", "onlinePresenceSummary", "aiRecommendation", "opportunityScore", "confidenceScore", "createdAt", "updatedAt"]
+    },
+    "SavedLead": {
+      "title": "SavedLead",
+      "description": "Saved lead reference for a freelancer.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "leadId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "businessName": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 100 },
+        "location": { "type": "string", "maxLength": 200 },
+        "website": { "type": "string", "maxLength": 400 },
+        "publicPhone": { "type": "string", "maxLength": 60 },
+        "publicEmail": { "type": "string", "maxLength": 254 },
+        "source": { "type": "string", "maxLength": 80 },
+        "sourceUrl": { "type": "string", "maxLength": 600 },
+        "opportunityScore": { "type": "number" },
+        "suggestedServices": { "type": "array" },
+        "notes": { "type": "string", "maxLength": 1500 },
+        "isDemo": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "leadId", "businessName", "category", "location", "source", "createdAt", "updatedAt"]
+    },
+    "CrmPipelineItem": {
+      "title": "CrmPipelineItem",
+      "description": "Freelancer CRM lead pipeline record.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "leadId": { "type": "string", "maxLength": 128 },
+        "businessName": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 100 },
+        "location": { "type": "string", "maxLength": 200 },
+        "source": { "type": "string", "maxLength": 80 },
+        "status": { "type": "string", "enum": ["New", "Interested", "Saved", "Contacted", "Replied", "Negotiating", "Converted", "Not Interested", "Closed"] },
+        "estimatedValue": { "type": "number" },
+        "followUpDate": { "type": "string", "maxLength": 40 },
+        "notes": { "type": "string", "maxLength": 3000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "businessName", "status", "estimatedValue", "createdAt", "updatedAt"]
+    },
+    "CrmActivity": {
+      "title": "CrmActivity",
+      "description": "Freelancer communication and CRM activity log entry.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "crmId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "channel": { "type": "string", "enum": ["Email", "Instagram DM", "LinkedIn", "WhatsApp", "Call", "Note"] },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1500 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "crmId", "channel", "summary", "createdAt"]
+    },
+    "PitchDraft": {
+      "title": "PitchDraft",
+      "description": "Saved personalized outreach draft.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "targetName": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "channel": { "type": "string", "enum": ["Email", "Instagram DM", "LinkedIn", "WhatsApp"] },
+        "tone": { "type": "string", "enum": ["Professional", "Friendly", "Short and Direct", "Personalized", "Persuasive but Respectful"] },
+        "subject": { "type": "string", "maxLength": 240 },
+        "body": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "serviceOffered": { "type": "string", "maxLength": 120 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "targetName", "channel", "tone", "body", "createdAt", "updatedAt"]
+    },
+    "MarketplaceProject": {
+      "title": "MarketplaceProject",
+      "description": "Freelance project posted directly by a business on ClientHunt AI.",
+      "type": "object",
+      "properties": {
+        "businessId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "companyName": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "title": { "type": "string", "minLength": 3, "maxLength": 200 },
+        "description": { "type": "string", "minLength": 10, "maxLength": 5000 },
+        "category": { "type": "string", "maxLength": 100 },
+        "requiredSkills": { "type": "array" },
+        "budgetMin": { "type": "number" },
+        "budgetMax": { "type": "number" },
+        "currency": { "type": "string", "enum": ["INR", "USD"] },
+        "deadline": { "type": "string", "maxLength": 40 },
+        "experienceLevel": { "type": "string", "enum": ["Beginner", "Intermediate", "Senior", "Any"] },
+        "location": { "type": "string", "maxLength": 120 },
+        "workMode": { "type": "string", "enum": ["Remote", "On-site", "Hybrid"] },
+        "projectType": { "type": "string", "enum": ["Fixed Price", "Hourly", "Retainer"] },
+        "status": { "type": "string", "enum": ["Draft", "Published", "Paused", "Closed", "Completed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["businessId", "companyName", "title", "description", "category", "requiredSkills", "budgetMin", "budgetMax", "currency", "workMode", "projectType", "status", "createdAt", "updatedAt"]
+    },
+    "ProjectProposal": {
+      "title": "ProjectProposal",
+      "description": "Freelancer proposal submitted to a business marketplace project.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "projectTitle": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "businessId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "freelancerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "freelancerName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "coverLetter": { "type": "string", "minLength": 10, "maxLength": 4000 },
+        "portfolioLink": { "type": "string", "maxLength": 400 },
+        "proposedPrice": { "type": "number" },
+        "currency": { "type": "string", "enum": ["INR", "USD"] },
+        "deliveryDays": { "type": "number" },
+        "relevantExperience": { "type": "string", "maxLength": 1500 },
+        "status": { "type": "string", "enum": ["Submitted", "Viewed", "Shortlisted", "Accepted", "Rejected", "Withdrawn"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "projectTitle", "businessId", "freelancerId", "freelancerName", "coverLetter", "proposedPrice", "currency", "deliveryDays", "status", "createdAt", "updatedAt"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Authorized messaging thread between a business and a freelancer.",
+      "type": "object",
+      "properties": {
+        "businessId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "freelancerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "businessName": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "freelancerName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "projectId": { "type": "string", "maxLength": 128 },
+        "projectTitle": { "type": "string", "maxLength": 200 },
+        "lastMessage": { "type": "string", "maxLength": 1000 },
+        "lastSenderId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["businessId", "freelancerId", "businessName", "freelancerName", "lastMessage", "createdAt", "updatedAt"]
+    },
+    "ConversationMessage": {
+      "title": "ConversationMessage",
+      "description": "Individual message inside an authorized conversation.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "senderName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "body": { "type": "string", "minLength": 1, "maxLength": 3000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "senderName", "body", "createdAt"]
+    },
+    "NotificationItem": {
+      "title": "NotificationItem",
+      "description": "In-app notification for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "type": { "type": "string", "enum": ["application", "proposal", "message", "project", "followup", "opportunity"] },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "message": { "type": "string", "minLength": 1, "maxLength": 600 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "title", "message", "read", "createdAt"]
+    },
+    "NotificationPreference": {
+      "title": "NotificationPreference",
+      "description": "User notification settings.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "newApplications": { "type": "boolean" },
+        "proposalUpdates": { "type": "boolean" },
+        "messages": { "type": "boolean" },
+        "followUpReminders": { "type": "boolean" },
+        "opportunityAlerts": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "newApplications", "proposalUpdates", "messages", "followUpReminders", "opportunityAlerts", "updatedAt"]
+    },
+    "AbuseReport": {
+      "title": "AbuseReport",
+      "description": "User-submitted report of inaccurate or abusive lead/opportunity content.",
+      "type": "object",
+      "properties": {
+        "reporterId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "targetType": { "type": "string", "enum": ["lead", "opportunity", "project", "user"] },
+        "targetId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "reason": { "type": "string", "minLength": 3, "maxLength": 200 },
+        "details": { "type": "string", "maxLength": 1500 },
+        "status": { "type": "string", "enum": ["open", "reviewed", "resolved", "dismissed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["reporterId", "targetType", "targetId", "reason", "status", "createdAt", "updatedAt"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Audit log for administrative actions.",
+      "type": "object",
+      "properties": {
+        "actorId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "actorEmail": { "type": "string", "maxLength": 254 },
+        "action": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "targetType": { "type": "string", "maxLength": 80 },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "details": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["actorId", "action", "targetType", "targetId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserAccount" },
+      "description": "User accounts and roles (PII protected to owner or admin)."
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminRegistry" },
+      "description": "Trusted admin UID registry."
+    },
+    "/freelancerProfiles/{userId}": {
+      "schema": { "$ref": "#/entities/FreelancerProfile" },
+      "description": "Freelancer public profiles."
+    },
+    "/businessProfiles/{userId}": {
+      "schema": { "$ref": "#/entities/BusinessProfile" },
+      "description": "Business company profiles."
+    },
+    "/leads/{leadId}": {
+      "schema": { "$ref": "#/entities/BusinessLead" },
+      "description": "Discovered business leads owned by users."
+    },
+    "/opportunities/{opportunityId}": {
+      "schema": { "$ref": "#/entities/HiringOpportunity" },
+      "description": "Discovered explicit hiring opportunities owned by users."
+    },
+    "/leadAnalyses/{analysisId}": {
+      "schema": { "$ref": "#/entities/LeadAnalysis" },
+      "description": "AI business analysis records."
+    },
+    "/savedLeads/{savedId}": {
+      "schema": { "$ref": "#/entities/SavedLead" },
+      "description": "Freelancer saved leads."
+    },
+    "/crmPipelines/{crmId}": {
+      "schema": { "$ref": "#/entities/CrmPipelineItem" },
+      "description": "Freelancer CRM pipeline leads."
+    },
+    "/crmActivities/{activityId}": {
+      "schema": { "$ref": "#/entities/CrmActivity" },
+      "description": "CRM activity and communication logs."
+    },
+    "/pitchDrafts/{draftId}": {
+      "schema": { "$ref": "#/entities/PitchDraft" },
+      "description": "Saved personalized AI pitch drafts."
+    },
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/MarketplaceProject" },
+      "description": "Marketplace freelance projects posted by businesses."
+    },
+    "/proposals/{proposalId}": {
+      "schema": { "$ref": "#/entities/ProjectProposal" },
+      "description": "Proposals submitted by freelancers to projects."
+    },
+    "/conversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/Conversation" },
+      "description": "Authorized business-freelancer conversation metadata."
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ConversationMessage" },
+      "description": "Messages within an authorized conversation."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/NotificationItem" },
+      "description": "User in-app notifications."
+    },
+    "/notificationPreferences/{userId}": {
+      "schema": { "$ref": "#/entities/NotificationPreference" },
+      "description": "Per-user notification preferences."
+    },
+    "/abuseReports/{reportId}": {
+      "schema": { "$ref": "#/entities/AbuseReport" },
+      "description": "User reports of inaccurate or abusive records."
+    },
+    "/auditLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Administrative action audit log."
+    }
+  }
+}
