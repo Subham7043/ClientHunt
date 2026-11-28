@@ -32,29 +32,33 @@ import {
 import type {
   BusinessProfile,
   FreelancerProfile,
+  StudentProfile,
   UserAccount,
   UserRole,
 } from '../types/domain';
+
+type OnboardingRole = 'student' | 'freelancer' | 'business';
 
 interface AuthContextValue {
   firebaseUser: User | null;
   account: UserAccount | null;
   freelancerProfile: FreelancerProfile | null;
   businessProfile: BusinessProfile | null;
+  studentProfile: StudentProfile | null;
   isAdmin: boolean;
   loading: boolean;
   needsOnboarding: boolean;
-  signInWithGoogle: (preferredRole?: 'freelancer' | 'business') => Promise<void>;
+  signInWithGoogle: (preferredRole?: OnboardingRole) => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   registerWithEmail: (
     email: string,
     password: string,
     fullName: string,
-    role: 'freelancer' | 'business'
+    role: OnboardingRole
   ) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
-  completeOnboarding: (role: 'freelancer' | 'business', details: any) => Promise<void>;
+  completeOnboarding: (role: OnboardingRole, details: any) => Promise<void>;
   refreshProfiles: () => Promise<void>;
   signOut: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
@@ -66,6 +70,7 @@ const AuthContext = createContext<AuthContextValue>({
   account: null,
   freelancerProfile: null,
   businessProfile: null,
+  studentProfile: null,
   isAdmin: false,
   loading: true,
   needsOnboarding: false,
@@ -86,15 +91,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [account, setAccount] = useState<UserAccount | null>(null);
   const [freelancerProfile, setFreelancerProfile] = useState<FreelancerProfile | null>(null);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
+  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null);
   const [isAdminDoc, setIsAdminDoc] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [pendingRole, setPendingRole] = useState<'freelancer' | 'business' | null>(null);
+  const [pendingRole, setPendingRole] = useState<OnboardingRole | null>(null);
 
   const loadUserContext = useCallback(async (user: User | null) => {
     if (!user) {
       setAccount(null);
       setFreelancerProfile(null);
       setBusinessProfile(null);
+      setStudentProfile(null);
       setIsAdminDoc(false);
       setLoading(false);
       return;
@@ -146,11 +153,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAccount(acc);
 
       if (acc) {
-        const fSnap = await getDoc(doc(db, 'freelancerProfiles', user.uid));
+        const [fSnap, bSnap, sSnap] = await Promise.all([
+          getDoc(doc(db, 'freelancerProfiles', user.uid)),
+          getDoc(doc(db, 'businessProfiles', user.uid)),
+          getDoc(doc(db, 'studentProfiles', user.uid)),
+        ]);
         setFreelancerProfile(fSnap.exists() ? (fSnap.data() as FreelancerProfile) : null);
-
-        const bSnap = await getDoc(doc(db, 'businessProfiles', user.uid));
         setBusinessProfile(bSnap.exists() ? (bSnap.data() as BusinessProfile) : null);
+        setStudentProfile(sSnap.exists() ? (sSnap.data() as StudentProfile) : null);
       }
     } catch (err) {
       console.error('Failed loading user context:', err);
@@ -167,7 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsub();
   }, [loadUserContext]);
 
-  const signInWithGoogle = async (preferredRole?: 'freelancer' | 'business') => {
+  const signInWithGoogle = async (preferredRole?: OnboardingRole) => {
     if (preferredRole) setPendingRole(preferredRole);
     const cred = await signInWithPopup(auth, googleProvider);
     if (preferredRole && cred.user) {
@@ -199,7 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string,
     fullName: string,
-    role: 'freelancer' | 'business'
+    role: OnboardingRole
   ) => {
     setPendingRole(role);
     const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -217,7 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const completeOnboarding = async (role: 'freelancer' | 'business', details: any) => {
+  const completeOnboarding = async (role: OnboardingRole, details: any) => {
     if (!firebaseUser) throw new Error('Not authenticated');
     if (!firebaseUser.emailVerified) {
       throw new Error('Please verify your email address before saving your profile.');
@@ -230,7 +240,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await setDoc(userRef, {
         uid: firebaseUser.uid,
         email: firebaseUser.email || '',
-        displayName: details.fullName || details.companyName || firebaseUser.displayName || 'User',
+        displayName: String(details.fullName || details.companyName || firebaseUser.displayName || 'User').slice(0, 115),
         photoURL: firebaseUser.photoURL || '',
         role,
         status: 'active',
@@ -240,7 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     } else {
       await updateDoc(userRef, {
-        displayName: details.fullName || details.companyName || existingUser.data().displayName,
+        displayName: String(details.fullName || details.companyName || existingUser.data().displayName).slice(0, 115),
         onboardingCompleted: true,
         updatedAt: serverTimestamp(),
       });
@@ -249,35 +259,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (role === 'freelancer') {
       const profilePayload: FreelancerProfile = {
         uid: firebaseUser.uid,
-        fullName: details.fullName || firebaseUser.displayName || 'Freelancer',
+        fullName: String(details.fullName || firebaseUser.displayName || 'Freelancer').slice(0, 115),
         photoURL: firebaseUser.photoURL || '',
-        headline: details.headline || 'Independent Freelance Specialist',
-        description: details.description || '',
-        skills: Array.isArray(details.skills) ? details.skills : ['Social Media', 'Strategy'],
-        services: Array.isArray(details.services) ? details.services : ['Social Media Management'],
+        headline: String(details.headline || 'Independent Freelance Specialist').slice(0, 195),
+        description: String(details.description || '').slice(0, 2000),
+        skills: Array.isArray(details.skills) ? details.skills.slice(0, 24) : ['Social Media', 'Strategy'],
+        services: Array.isArray(details.services) ? details.services.slice(0, 16) : ['Social Media Management'],
         experienceLevel: details.experienceLevel || 'Intermediate',
-        portfolioLinks: Array.isArray(details.portfolioLinks) ? details.portfolioLinks : [],
-        website: details.website || '',
-        country: details.country || 'India',
-        state: details.state || 'Rajasthan',
-        city: details.city || 'Jaipur',
+        portfolioLinks: Array.isArray(details.portfolioLinks) ? details.portfolioLinks.slice(0, 10) : [],
+        website: String(details.website || '').slice(0, 290),
+        country: String(details.country || 'India').slice(0, 95),
+        state: String(details.state || 'Rajasthan').slice(0, 95),
+        city: String(details.city || 'Jaipur').slice(0, 95),
         workPreference: details.workPreference || 'Remote',
         minBudget: Number(details.minBudget) || 5000,
-        preferredIndustries: Array.isArray(details.preferredIndustries) ? details.preferredIndustries : ['Restaurants', 'Startups'],
+        preferredIndustries: Array.isArray(details.preferredIndustries) ? details.preferredIndustries.slice(0, 16) : ['Restaurants', 'Startups'],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
       await setDoc(doc(db, 'freelancerProfiles', firebaseUser.uid), profilePayload);
+    } else if (role === 'student') {
+      const studentPayload: StudentProfile = {
+        uid: firebaseUser.uid,
+        fullName: String(details.fullName || firebaseUser.displayName || 'Student').trim().slice(0, 115) || 'Student',
+        photoURL: (firebaseUser.photoURL || '').slice(0, 490),
+        educationLevel: details.educationLevel || 'Undergraduate',
+        degree: String(details.degree || 'B.Tech').trim().slice(0, 115) || 'B.Tech',
+        course: String(details.course || 'Computer Science').trim().slice(0, 115) || 'Computer Science',
+        specialization: String(details.specialization || '').trim().slice(0, 115),
+        country: String(details.country || 'India').trim().slice(0, 75) || 'India',
+        state: String(details.state || 'Rajasthan').trim().slice(0, 75),
+        city: String(details.city || 'Jaipur').trim().slice(0, 75),
+        institution: String(details.institution || 'Not specified').trim().slice(0, 175) || 'Not specified',
+        academicScore: String(details.academicScore || '').trim().slice(0, 55),
+        graduationYear: String(details.graduationYear || '2027').trim().slice(0, 18) || '2027',
+        incomeRange: String(details.incomeRange || 'Prefer not to say').trim().slice(0, 75),
+        interests: Array.isArray(details.interests) ? details.interests.slice(0, 16) : ['Merit-based', 'Government'],
+        preferredFunding: details.preferredFunding || 'Any',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      await setDoc(doc(db, 'studentProfiles', firebaseUser.uid), studentPayload);
     } else {
       const bizPayload: BusinessProfile = {
         uid: firebaseUser.uid,
-        companyName: details.companyName || 'My Business',
-        industry: details.industry || 'Services',
-        description: details.description || '',
-        website: details.website || '',
-        country: details.country || 'India',
-        state: details.state || 'Rajasthan',
-        city: details.city || 'Jaipur',
+        companyName: String(details.companyName || 'My Business').slice(0, 155),
+        industry: String(details.industry || 'Services').slice(0, 115),
+        description: String(details.description || '').slice(0, 2000),
+        website: String(details.website || '').slice(0, 290),
+        country: String(details.country || 'India').slice(0, 95),
+        state: String(details.state || 'Rajasthan').slice(0, 95),
+        city: String(details.city || 'Jaipur').slice(0, 95),
         logoURL: firebaseUser.photoURL || '',
         size: details.size || '2-10',
         createdAt: serverTimestamp(),
@@ -308,6 +340,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAccount(null);
     setFreelancerProfile(null);
     setBusinessProfile(null);
+    setStudentProfile(null);
     setIsAdminDoc(false);
   };
 
@@ -319,15 +352,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const deleteMyAccountData = async () => {
     if (!firebaseUser) return;
     const uid = firebaseUser.uid;
-    const ownerCols = ['savedLeads', 'crmPipelines', 'crmActivities', 'pitchDrafts', 'leads', 'opportunities', 'leadAnalyses'];
+    const ownerCols = [
+      'savedLeads',
+      'crmPipelines',
+      'crmActivities',
+      'pitchDrafts',
+      'leads',
+      'opportunities',
+      'leadAnalyses',
+      'savedJobs',
+      'jobApplications',
+      'jobAlerts',
+      'savedScholarships',
+      'scholarshipApplications',
+      'scholarshipReminders',
+    ];
     for (const colName of ownerCols) {
-      const snap = await getDocs(query(collection(db, colName), where('ownerId', '==', uid)));
-      for (const d of snap.docs) {
-        await deleteDoc(d.ref);
+      try {
+        const snap = await getDocs(query(collection(db, colName), where('ownerId', '==', uid)));
+        for (const d of snap.docs) {
+          await deleteDoc(d.ref);
+        }
+      } catch {
+        /* ignore */
       }
     }
     try { await deleteDoc(doc(db, 'freelancerProfiles', uid)); } catch { /* ignore */ }
     try { await deleteDoc(doc(db, 'businessProfiles', uid)); } catch { /* ignore */ }
+    try { await deleteDoc(doc(db, 'studentProfiles', uid)); } catch { /* ignore */ }
     try { await deleteDoc(doc(db, 'notificationPreferences', uid)); } catch { /* ignore */ }
     try { await deleteDoc(doc(db, 'users', uid)); } catch { /* ignore */ }
     await firebaseSignOut(auth);
@@ -343,6 +395,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         account,
         freelancerProfile,
         businessProfile,
+        studentProfile,
         isAdmin,
         loading,
         needsOnboarding,

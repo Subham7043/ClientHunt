@@ -28,6 +28,7 @@ export interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: number;
+  section?: string;
 }
 
 interface DashboardShellProps {
@@ -119,33 +120,41 @@ export function DashboardShell({
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-          {navItems.map((item) => {
+          {navItems.map((item, idx) => {
             const Icon = item.icon;
             const active = activeTab === item.id;
+            const showSection =
+              Boolean(item.section) && (idx === 0 || navItems[idx - 1].section !== item.section);
             return (
-              <button
-                key={item.id}
-                onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-                  active
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'
-                }`}
-              >
-                <span className="flex items-center gap-2.5 truncate">
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{item.label}</span>
-                </span>
-                {typeof item.badge === 'number' && item.badge > 0 && (
-                  <span
-                    className={`font-mono tabular-nums text-xs px-1.5 py-0.5 rounded ${
-                      active ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
+              <React.Fragment key={item.id}>
+                {showSection && (
+                  <p className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    {item.section}
+                  </p>
                 )}
-              </button>
+                <button
+                  onClick={() => onSelectTab(item.id)}
+                  className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                    active
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5 truncate">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </span>
+                  {typeof item.badge === 'number' && item.badge > 0 && (
+                    <span
+                      className={`font-mono tabular-nums text-xs px-1.5 py-0.5 rounded ${
+                        active ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              </React.Fragment>
             );
           })}
         </nav>
@@ -193,25 +202,33 @@ export function DashboardShell({
               </button>
             </div>
             <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-              {navItems.map((item) => {
+              {navItems.map((item, idx) => {
                 const Icon = item.icon;
                 const active = activeTab === item.id;
+                const showSection =
+                  Boolean(item.section) && (idx === 0 || navItems[idx - 1].section !== item.section);
                 return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      onSelectTab(item.id);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium ${
-                      active
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span>{item.label}</span>
-                  </button>
+                  <React.Fragment key={item.id}>
+                    {showSection && (
+                      <p className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        {item.section}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => {
+                        onSelectTab(item.id);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium ${
+                        active
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span>{item.label}</span>
+                    </button>
+                  </React.Fragment>
                 );
               })}
             </nav>

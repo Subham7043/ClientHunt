@@ -23,20 +23,35 @@ import type { BusinessLead, HiringOpportunity } from '../types/domain';
 import { LeafletMap } from './LeafletMap';
 
 const BUSINESS_CATEGORIES = [
-  'Restaurants',
-  'Cafes',
-  'Hotels',
-  'Real estate',
+  'Restaurants and cafes',
+  'Hotels and hospitality',
+  'Real estate agencies',
   'Coaching institutes',
-  'Educational institutions',
+  'Schools and colleges',
+  'Hospitals and clinics',
+  'Gyms and fitness centres',
+  'Clothing and fashion brands',
   'Startups',
-  'Clothing brands',
-  'Gyms',
-  'Healthcare',
-  'E-commerce',
+  'E-commerce businesses',
   'Marketing agencies',
-  'Salons',
-  'Other businesses',
+  'Local manufacturers',
+  'Salons and beauty businesses',
+  'Photography studios',
+  'Travel agencies',
+  'Retail stores',
+  'Other local businesses',
+];
+
+const JAIPUR_LOCALITIES = [
+  'C-Scheme',
+  'Malviya Nagar',
+  'Vaishali Nagar',
+  'Mansarovar',
+  'Bani Park',
+  'Tonk Road',
+  'MI Road',
+  'Raja Park',
+  'Johari Bazaar',
 ];
 
 const SERVICE_CATEGORIES = [
@@ -73,20 +88,26 @@ export function DiscoverLeadsView({
   const [state, setState] = useState('Rajasthan');
   const [city, setCity] = useState('Jaipur');
   const [area, setArea] = useState('');
-  const [category, setCategory] = useState('Restaurants');
+  const [category, setCategory] = useState('Restaurants and cafes');
   const [service, setService] = useState('Social Media Management');
   const [queryText, setQueryText] = useState('');
 
-  // Additional filters
+  // Additional structured filters
+  const [businessNameFilter, setBusinessNameFilter] = useState('');
+  const [businessSizeFilter, setBusinessSizeFilter] = useState('All');
   const [onlyWebsite, setOnlyWebsite] = useState(false);
   const [onlyInstagram, setOnlyInstagram] = useState(false);
   const [onlyEmail, setOnlyEmail] = useState(false);
   const [onlyPhone, setOnlyPhone] = useState(false);
+  const [onlyOpeningHours, setOnlyOpeningHours] = useState(false);
+  const [minRating, setMinRating] = useState(0);
+  const [minReviews, setMinReviews] = useState(0);
   const [minScore, setMinScore] = useState(0);
   const [includeOsm, setIncludeOsm] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [enrichingPlaceId, setEnrichingPlaceId] = useState<string | null>(null);
   const [leads, setLeads] = useState<BusinessLead[]>([]);
   const [providerAlerts, setProviderAlerts] = useState<Array<{ provider: string; configured: boolean; enabled: boolean; error?: string }>>([]);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
@@ -102,18 +123,24 @@ export function DiscoverLeadsView({
     }
   }, []);
 
-  const runSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const executeDiscovery = async (overrideArea?: string) => {
+    const activeArea = overrideArea !== undefined ? overrideArea : area;
     if (demoMode) {
-      setLeads(DEMO_BUSINESS_LEADS);
+      setLeads(
+        activeArea
+          ? DEMO_BUSINESS_LEADS.filter((l) =>
+              l.location.toLowerCase().includes(activeArea.toLowerCase())
+            )
+          : DEMO_BUSINESS_LEADS
+      );
       setProviderAlerts([]);
-      toast('Loaded Sample Demo leads (Jaipur)', 'info');
+      toast(activeArea ? `Filtered Sample Demo leads for ${activeArea}` : 'Loaded Sample Demo leads (Jaipur)', 'info');
       return;
     }
 
     setLoading(true);
     try {
-      const label = `${category} · ${area ? `${area}, ` : ''}${city} (${service})`;
+      const label = `${category} · ${activeArea ? `${activeArea}, ` : ''}${city} (${service})`;
       const nextHist = [label, ...searchHistory.filter((x) => x !== label)].slice(0, 6);
       setSearchHistory(nextHist);
       window.localStorage.setItem('clienthunt_search_history', JSON.stringify(nextHist));
@@ -130,7 +157,8 @@ export function DiscoverLeadsView({
           country,
           state,
           city,
-          area,
+          area: activeArea,
+          locality: activeArea,
           category,
           service,
           includeOsm,
@@ -141,15 +169,30 @@ export function DiscoverLeadsView({
       setLeads(data.leads || []);
       setProviderAlerts(data.providers || []);
       if (data.leads?.length > 0) {
-        toast(`Found ${data.leads.length} business leads`, 'success');
+        toast(`Found ${data.leads.length} potential business leads`, 'success');
       } else {
-        toast('Search completed with 0 live results', 'info', 'Check provider configuration or toggle Demo Mode to preview sample data.');
+        toast('Search completed with 0 live results', 'info', 'Check provider configuration or toggle Sample Demo Mode to preview.');
       }
     } catch (err) {
       toast('Discovery search failed', 'error', err instanceof Error ? err.message : undefined);
     } finally {
       setLoading(false);
     }
+  };
+
+  const runSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    await executeDiscovery();
+  };
+
+  const exploreNextLocality = async () => {
+    const idx = JAIPUR_LOCALITIES.findIndex((l) => l.toLowerCase() === area.trim().toLowerCase());
+    const nextLoc = JAIPUR_LOCALITIES[(idx + 1) % JAIPUR_LOCALITIES.length];
+    setCity('Jaipur');
+    setState('Rajasthan');
+    setCountry('India');
+    setArea(nextLoc);
+    await executeDiscovery(nextLoc);
   };
 
   const safeId = (raw: string) =>
@@ -222,6 +265,55 @@ export function DiscoverLeadsView({
     }
   };
 
+  const handleEnrichPlace = async (lead: BusinessLead) => {
+    setEnrichingPlaceId(lead.id);
+    try {
+      const res = await apiFetch<{
+        configured: boolean;
+        enriched: boolean;
+        error?: string;
+        details?: Partial<BusinessLead>;
+      }>('/api/discovery/places-enrich', {
+        method: 'POST',
+        body: JSON.stringify({
+          providerId: lead.providerId,
+          dataId: lead.dataId,
+          businessName: lead.businessName,
+          city: lead.city || city,
+          country: lead.country || country,
+        }),
+      });
+      if (!res.configured) {
+        toast('Google Maps Places API not configured', 'info', 'Configure GOOGLE_MAPS_PLACES_API in server secrets or Admin Data Sources.');
+        return;
+      }
+      if (!res.enriched || !res.details) {
+        toast('Places enrichment returned no additional fields', 'info', res.error);
+        return;
+      }
+      const mergeLead = (item: BusinessLead): BusinessLead => ({
+        ...item,
+        address: res.details?.address || item.address,
+        website: res.details?.website || item.website,
+        hasWebsite: Boolean(res.details?.website || item.website),
+        publicPhone: res.details?.publicPhone || item.publicPhone,
+        rating: res.details?.rating ?? item.rating,
+        reviewCount: res.details?.reviewCount ?? item.reviewCount,
+        openingHours: res.details?.openingHours?.length ? res.details.openingHours : item.openingHours,
+        sourceUrl: res.details?.sourceUrl || item.sourceUrl,
+        placesEnriched: true,
+        placesEnrichedAt: res.details?.placesEnrichedAt || new Date().toISOString(),
+      });
+      setLeads((prev) => prev.map((l) => (l.id === lead.id ? mergeLead(l) : l)));
+      setSelectedLead((prev) => (prev && prev.id === lead.id ? mergeLead(prev) : prev));
+      toast('Business record enriched with verified Places details', 'success');
+    } catch (err) {
+      toast('Places enrichment failed', 'error', err instanceof Error ? err.message : undefined);
+    } finally {
+      setEnrichingPlaceId(null);
+    }
+  };
+
   const handleEnrichEmail = async (lead: BusinessLead) => {
     if (!lead.website) {
       toast('No website available for domain email lookup', 'info');
@@ -259,24 +351,35 @@ export function DiscoverLeadsView({
   };
 
   const filtered = leads.filter((l) => {
+    if (businessNameFilter.trim() && !l.businessName.toLowerCase().includes(businessNameFilter.trim().toLowerCase())) {
+      return false;
+    }
+    if (businessSizeFilter !== 'All' && (l.businessSize || '').toLowerCase() !== businessSizeFilter.toLowerCase()) {
+      return false;
+    }
     if (onlyWebsite && !l.hasWebsite) return false;
     if (onlyInstagram && !l.hasInstagram) return false;
     if (onlyEmail && !l.publicEmail) return false;
     if (onlyPhone && !l.publicPhone) return false;
+    if (onlyOpeningHours && (!l.openingHours || l.openingHours.length === 0)) return false;
+    if (minRating > 0 && (l.rating || 0) < minRating) return false;
+    if (minReviews > 0 && (l.reviewCount || 0) < minReviews) return false;
     if (l.opportunityScore < minScore) return false;
     return true;
   });
 
   const exportCsv = () => {
     if (filtered.length === 0) return;
-    const headers = ['Business Name', 'Category', 'Location', 'Website', 'Phone', 'Email', 'Source', 'Score', 'Demo'];
+    const headers = ['Business Name', 'Category', 'Location', 'Website', 'Phone', 'Email', 'Rating', 'Reviews', 'Source', 'Score', 'Demo'];
     const rows = filtered.map((l) => [
       l.businessName,
       l.category,
       l.location,
-      l.website || '',
-      l.publicPhone || '',
-      l.publicEmail || '',
+      l.website || 'Not available',
+      l.publicPhone || 'Not available',
+      l.publicEmail || 'Not available',
+      l.rating != null ? String(l.rating) : 'Not available',
+      l.reviewCount != null ? String(l.reviewCount) : 'Not available',
       l.source,
       String(l.opportunityScore),
       String(l.isDemo),
@@ -297,15 +400,25 @@ export function DiscoverLeadsView({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#0B1221] dark:text-white">
+          <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+            Type B · Potential Business Leads (Advisory Opportunity Analysis)
+          </p>
+          <h1 className="text-2xl font-bold text-[#0B1221] dark:text-white mt-0.5">
             Business Lead Discovery Engine
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">
-            Find local businesses and inspect AI-suggested service opportunities. Never fabricates contact info or hiring claims.
+            Discover local businesses via Google Maps Search &amp; OpenStreetMap, enrich verified details on demand via Places API, and keep provider facts strictly separate from AI-suggested service opportunities.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] text-xs font-medium cursor-pointer">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={exploreNextLocality}
+            className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111A2E] text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            Explore Next Locality
+          </button>
+          <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] text-xs font-medium cursor-pointer whitespace-nowrap shrink-0">
             <input
               type="checkbox"
               checked={demoMode}
@@ -326,7 +439,7 @@ export function DiscoverLeadsView({
           {filtered.length > 0 && (
             <button
               onClick={exportCsv}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-800 whitespace-nowrap shrink-0 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" /> Export CSV
             </button>
@@ -353,12 +466,34 @@ export function DiscoverLeadsView({
             <input value={city} onChange={(e) => setCity(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Local Area (Optional)</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Neighborhood / Locality</label>
             <input value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. C-Scheme, Malviya Nagar" className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm" />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Locality quick presets */}
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="text-slate-500 mr-1">Localities:</span>
+          {JAIPUR_LOCALITIES.map((loc) => (
+            <button
+              key={loc}
+              type="button"
+              onClick={() => {
+                setArea(loc);
+                executeDiscovery(loc);
+              }}
+              className={`px-2.5 py-1 rounded-md cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
+                area.toLowerCase() === loc.toLowerCase()
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {loc}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
             <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Business Category</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm">
@@ -372,13 +507,17 @@ export function DiscoverLeadsView({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Specific Keyword (Optional)</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Search Keyword (Optional)</label>
             <input value={queryText} onChange={(e) => setQueryText(e.target.value)} placeholder="e.g. specialty cafe, boutique" className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Filter by Business Name</label>
+            <input value={businessNameFilter} onChange={(e) => setBusinessNameFilter(e.target.value)} placeholder="Filter returned results..." className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm" />
           </div>
         </div>
 
         <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 dark:border-slate-800">
-          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 dark:text-slate-300">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
             <label className="inline-flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" checked={onlyWebsite} onChange={(e) => setOnlyWebsite(e.target.checked)} className="rounded" /> Has website
             </label>
@@ -392,19 +531,33 @@ export function DiscoverLeadsView({
               <input type="checkbox" checked={onlyPhone} onChange={(e) => setOnlyPhone(e.target.checked)} className="rounded" /> Has phone
             </label>
             <label className="inline-flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" checked={includeOsm} onChange={(e) => setIncludeOsm(e.target.checked)} className="rounded" /> Include OpenStreetMap
+              <input type="checkbox" checked={onlyOpeningHours} onChange={(e) => setOnlyOpeningHours(e.target.checked)} className="rounded" /> Has hours
+            </label>
+            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked={includeOsm} onChange={(e) => setIncludeOsm(e.target.checked)} className="rounded" /> OpenStreetMap
             </label>
             <label className="inline-flex items-center gap-1.5">
-              Min score:
-              <input
-                type="number"
-                min={0}
-                max={100}
-                value={minScore}
-                onChange={(e) => setMinScore(Number(e.target.value) || 0)}
-                className="w-16 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] font-mono tabular-nums"
-              />
+              Min Rating:
+              <input type="number" step="0.5" min={0} max={5} value={minRating} onChange={(e) => setMinRating(Number(e.target.value) || 0)} className="w-14 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] font-mono tabular-nums" />
             </label>
+            <label className="inline-flex items-center gap-1.5">
+              Min Reviews:
+              <input type="number" min={0} value={minReviews} onChange={(e) => setMinReviews(Number(e.target.value) || 0)} className="w-16 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] font-mono tabular-nums" />
+            </label>
+            <label className="inline-flex items-center gap-1.5">
+              Min Score:
+              <input type="number" min={0} max={100} value={minScore} onChange={(e) => setMinScore(Number(e.target.value) || 0)} className="w-16 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] font-mono tabular-nums" />
+            </label>
+            <select
+              value={businessSizeFilter}
+              onChange={(e) => setBusinessSizeFilter(e.target.value)}
+              className="px-2 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221]"
+            >
+              <option value="All">All Sizes</option>
+              <option value="Solo">Solo</option>
+              <option value="Growing local institute">Local / Growing</option>
+              <option value="Mid-size local hospitality">Mid-size</option>
+            </select>
           </div>
 
           <div className="flex items-center gap-2">
@@ -427,7 +580,7 @@ export function DiscoverLeadsView({
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-60"
             >
               <Search className="w-4 h-4" />
               {loading ? 'Searching...' : demoMode ? 'Load Sample Leads' : 'Discover Businesses'}
@@ -494,7 +647,7 @@ export function DiscoverLeadsView({
             No Business Leads Loaded Yet
           </h3>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-            Click &ldquo;Discover Businesses&rdquo; to query Scrapingdog &amp; OpenStreetMap, or enable Sample Demo Mode to explore Jaipur sample leads.
+            Click &ldquo;Discover Businesses&rdquo; to query Google Maps Search &amp; OpenStreetMap, or enable Sample Demo Mode to explore Jaipur sample leads.
           </p>
         </div>
       ) : viewMode === 'map' ? (
@@ -510,8 +663,10 @@ export function DiscoverLeadsView({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {lead.category} · {lead.source} {lead.isDemo ? '· Sample Demo' : ''}
-                      {lead.possibleDuplicate ? ' · Possible Duplicate Flagged' : ''}
+                      {lead.category} · {lead.source}
+                      {lead.placesEnriched ? ' · Places Enriched' : ''}
+                      {lead.isDemo ? ' · Sample Demo' : ''}
+                      {lead.possibleDuplicate ? ' · Possible Duplicate' : ''}
                     </p>
                     <h3 className="mt-1 text-lg font-bold text-[#0B1221] dark:text-white">
                       {lead.businessName}
@@ -531,31 +686,52 @@ export function DiscoverLeadsView({
                 </p>
 
                 <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                  {lead.website && (
-                    <a href={lead.website} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[200px]">
-                      {lead.website}
-                    </a>
-                  )}
-                  {lead.publicPhone && <span className="font-mono">{lead.publicPhone}</span>}
+                  <span>
+                    Website:{' '}
+                    {lead.website ? (
+                      <a href={lead.website} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                        {lead.website}
+                      </a>
+                    ) : (
+                      'Not available'
+                    )}
+                  </span>
+                  <span className="font-mono tabular-nums">Phone: {lead.publicPhone || 'Not available'}</span>
                   {lead.publicEmail && (
                     <span>
-                      {lead.publicEmail} {lead.emailVerificationStatus ? `(${lead.emailVerificationStatus})` : ''}
+                      Email: {lead.publicEmail} {lead.emailVerificationStatus ? `(${lead.emailVerificationStatus})` : ''}
+                    </span>
+                  )}
+                  {lead.rating != null && (
+                    <span className="font-mono tabular-nums">
+                      Rating: {lead.rating.toFixed(1)} ({lead.reviewCount ?? 0} reviews)
                     </span>
                   )}
                 </div>
 
-                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                  {lead.aiExplanation}
-                </p>
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  AI-Suggested Services: {lead.suggestedServices.join(' · ')}
-                </p>
+                {lead.openingHours && lead.openingHours.length > 0 && (
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    Hours: {lead.openingHours.slice(0, 2).join(' · ')}
+                  </p>
+                )}
+
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    AI-Suggested Opportunity (Not verified hiring intent)
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {lead.aiExplanation}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Suggested Services: {lead.suggestedServices.join(' · ')}
+                  </p>
+                </div>
               </div>
 
               <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => onAnalyzeLead(lead)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5" /> Analyze with AI
                 </button>
@@ -567,32 +743,41 @@ export function DiscoverLeadsView({
                       service: lead.suggestedServices[0] || service,
                     })
                   }
-                  className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   Generate Pitch
                 </button>
+                {!lead.isDemo && (
+                  <button
+                    onClick={() => handleEnrichPlace(lead)}
+                    disabled={enrichingPlaceId === lead.id}
+                    className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                  >
+                    {enrichingPlaceId === lead.id ? 'Enriching...' : lead.placesEnriched ? 'Re-Enrich Place' : 'Enrich Place'}
+                  </button>
+                )}
                 <button
                   onClick={() => handleSaveLead(lead)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <Bookmark className="w-3.5 h-3.5" /> Save
                 </button>
                 <button
                   onClick={() => handleAddToCrm(lead)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Add to CRM
+                  <Plus className="w-3.5 h-3.5" /> CRM
                 </button>
                 <button
                   onClick={() => setSelectedLead(lead)}
-                  className="px-2.5 py-1.5 text-xs text-slate-600 dark:text-slate-300 hover:underline cursor-pointer"
+                  className="px-2.5 py-1.5 text-xs text-slate-600 dark:text-slate-300 hover:underline whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   Details
                 </button>
                 {lead.website && !lead.publicEmail && (
                   <button
                     onClick={() => handleEnrichEmail(lead)}
-                    className="px-2.5 py-1.5 text-xs text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
+                    className="px-2.5 py-1.5 text-xs text-violet-600 dark:text-violet-400 hover:underline whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     Find Email
                   </button>
@@ -602,7 +787,7 @@ export function DiscoverLeadsView({
                     href={lead.sourceUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                    className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white whitespace-nowrap shrink-0"
                   >
                     Source <ExternalLink className="w-3 h-3" />
                   </a>
@@ -622,7 +807,7 @@ export function DiscoverLeadsView({
 
       {/* Details Modal */}
       {selectedLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 overflow-y-auto">
           <div className="max-w-lg w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -634,14 +819,51 @@ export function DiscoverLeadsView({
               </button>
             </div>
             <div className="text-sm space-y-2 text-slate-600 dark:text-slate-300">
-              <p><strong>Address:</strong> {selectedLead.address || selectedLead.location}</p>
-              <p><strong>Website:</strong> {selectedLead.website || 'Not publicly listed'}</p>
-              <p><strong>Phone:</strong> {selectedLead.publicPhone || 'Not publicly listed'}</p>
-              <p><strong>Email:</strong> {selectedLead.publicEmail || 'Not publicly listed'}</p>
-              {selectedLead.latitude && selectedLead.longitude && (
-                <p className="font-mono text-xs">Coordinates: {selectedLead.latitude.toFixed(5)}, {selectedLead.longitude.toFixed(5)}</p>
+              <p className="text-xs font-semibold text-slate-900 dark:text-white">Verified Provider Facts</p>
+              <p><strong>Address:</strong> {selectedLead.address || selectedLead.location || 'Not available'}</p>
+              <p><strong>Website:</strong> {selectedLead.website || 'Not available'}</p>
+              <p><strong>Phone:</strong> {selectedLead.publicPhone || 'Not available'}</p>
+              <p><strong>Email:</strong> {selectedLead.publicEmail || 'Not available'}</p>
+              <p>
+                <strong>Rating &amp; Reviews:</strong>{' '}
+                {selectedLead.rating != null ? `${selectedLead.rating.toFixed(1)} (${selectedLead.reviewCount ?? 0} reviews)` : 'Not available'}
+              </p>
+              {selectedLead.openingHours && selectedLead.openingHours.length > 0 && (
+                <div>
+                  <strong>Opening Hours:</strong>
+                  <ul className="mt-1 text-xs space-y-0.5 text-slate-500 dark:text-slate-400">
+                    {selectedLead.openingHours.map((h) => (
+                      <li key={h}>{h}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
-              <p className="pt-2 border-t border-slate-100 dark:border-slate-800">{selectedLead.aiExplanation}</p>
+              {selectedLead.latitude && selectedLead.longitude && (
+                <p className="font-mono text-xs tabular-nums">
+                  Coordinates: {selectedLead.latitude.toFixed(5)}, {selectedLead.longitude.toFixed(5)}
+                </p>
+              )}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">AI-Suggested Potential Opportunity</p>
+                <p>{selectedLead.aiExplanation}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              {!selectedLead.isDemo && (
+                <button
+                  onClick={() => handleEnrichPlace(selectedLead)}
+                  disabled={enrichingPlaceId === selectedLead.id}
+                  className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  {enrichingPlaceId === selectedLead.id ? 'Enriching...' : 'Enrich via Places API'}
+                </button>
+              )}
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="ml-auto px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium cursor-pointer"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>

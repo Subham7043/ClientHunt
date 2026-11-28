@@ -56,9 +56,32 @@ service cloud.firestore {
         && isValidString(data.email, 3, 254)
         && isValidString(data.displayName, 1, 120)
         && (!('photoURL' in data) || isValidString(data.photoURL, 0, 500))
-        && data.role in ['freelancer', 'business', 'admin']
+        && data.role in ['student', 'freelancer', 'business', 'admin']
         && data.status in ['active', 'suspended']
         && data.onboardingCompleted is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidStudentProfile(data) {
+      return data.keys().hasAll(['uid', 'fullName', 'educationLevel', 'degree', 'course', 'country', 'state', 'institution', 'graduationYear', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'fullName', 'photoURL', 'educationLevel', 'degree', 'course', 'specialization', 'country', 'state', 'city', 'institution', 'academicScore', 'graduationYear', 'incomeRange', 'interests', 'preferredFunding', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && isValidString(data.fullName, 1, 120)
+        && (!('photoURL' in data) || isValidString(data.photoURL, 0, 500))
+        && data.educationLevel in ['High School', 'Diploma / Vocational', 'Undergraduate', 'Postgraduate', 'PhD / Doctoral', 'Postdoctoral']
+        && isValidString(data.degree, 1, 120)
+        && isValidString(data.course, 1, 120)
+        && (!('specialization' in data) || isValidString(data.specialization, 0, 120))
+        && isValidString(data.country, 1, 80)
+        && isValidString(data.state, 0, 80)
+        && (!('city' in data) || isValidString(data.city, 0, 80))
+        && isValidString(data.institution, 1, 180)
+        && (!('academicScore' in data) || isValidString(data.academicScore, 0, 60))
+        && isValidString(data.graduationYear, 1, 20)
+        && (!('incomeRange' in data) || isValidString(data.incomeRange, 0, 80))
+        && (!('interests' in data) || isValidStringList(data.interests, 20))
+        && (!('preferredFunding' in data) || data.preferredFunding in ['Any', 'Full Funding', 'Partial Funding'])
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -105,7 +128,7 @@ service cloud.firestore {
 
     function isValidBusinessLead(data) {
       return data.keys().hasAll(['ownerId', 'businessName', 'category', 'location', 'source', 'isDemo', 'status', 'createdAt', 'updatedAt'])
-        && data.keys().hasOnly(['ownerId', 'businessName', 'category', 'location', 'address', 'country', 'state', 'city', 'website', 'publicPhone', 'publicEmail', 'instagramUrl', 'source', 'sourceUrl', 'providerId', 'latitude', 'longitude', 'hasWebsite', 'hasInstagram', 'opportunityScore', 'confidenceScore', 'suggestedServices', 'aiExplanation', 'isDemo', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'businessName', 'category', 'location', 'address', 'country', 'state', 'city', 'locality', 'website', 'publicPhone', 'publicEmail', 'instagramUrl', 'openingHours', 'placesEnriched', 'source', 'sourceUrl', 'providerId', 'latitude', 'longitude', 'hasWebsite', 'hasInstagram', 'opportunityScore', 'confidenceScore', 'suggestedServices', 'aiExplanation', 'isDemo', 'status', 'createdAt', 'updatedAt'])
         && isValidId(data.ownerId)
         && isValidString(data.businessName, 1, 200)
         && isValidString(data.category, 1, 100)
@@ -114,10 +137,13 @@ service cloud.firestore {
         && (!('country' in data) || isValidString(data.country, 0, 80))
         && (!('state' in data) || isValidString(data.state, 0, 80))
         && (!('city' in data) || isValidString(data.city, 0, 80))
+        && (!('locality' in data) || isValidString(data.locality, 0, 100))
         && (!('website' in data) || isValidString(data.website, 0, 400))
         && (!('publicPhone' in data) || isValidString(data.publicPhone, 0, 60))
         && (!('publicEmail' in data) || isValidString(data.publicEmail, 0, 254))
         && (!('instagramUrl' in data) || isValidString(data.instagramUrl, 0, 400))
+        && (!('openingHours' in data) || isValidStringList(data.openingHours, 7))
+        && (!('placesEnriched' in data) || data.placesEnriched is bool)
         && isValidString(data.source, 1, 80)
         && (!('sourceUrl' in data) || isValidString(data.sourceUrl, 0, 600))
         && (!('providerId' in data) || isValidString(data.providerId, 0, 140))
@@ -156,6 +182,182 @@ service cloud.firestore {
         && data.isDemo is bool
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
+    }
+
+    function isValidJobListing(data) {
+      return data.keys().hasAll(['ownerId', 'title', 'company', 'sourceProvider', 'originalUrl', 'status', 'isDemo', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'externalJobId', 'title', 'company', 'description', 'requirements', 'skills', 'category', 'location', 'country', 'employmentType', 'workMode', 'salary', 'postedDate', 'deadline', 'sourceProvider', 'originalUrl', 'applicationUrl', 'lastVerifiedAt', 'status', 'isDemo', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && (!('externalJobId' in data) || isValidString(data.externalJobId, 0, 120))
+        && isValidString(data.title, 1, 240)
+        && isValidString(data.company, 1, 160)
+        && (!('description' in data) || isValidString(data.description, 0, 4000))
+        && (!('requirements' in data) || isValidStringList(data.requirements, 15))
+        && (!('skills' in data) || isValidStringList(data.skills, 20))
+        && (!('category' in data) || isValidString(data.category, 0, 100))
+        && (!('location' in data) || isValidString(data.location, 0, 160))
+        && (!('country' in data) || isValidString(data.country, 0, 80))
+        && (!('employmentType' in data) || data.employmentType in ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance', 'Not specified'])
+        && (!('workMode' in data) || data.workMode in ['Remote', 'Hybrid', 'On-site', 'Not specified'])
+        && (!('salary' in data) || isValidString(data.salary, 0, 120))
+        && (!('postedDate' in data) || isValidString(data.postedDate, 0, 80))
+        && (!('deadline' in data) || isValidString(data.deadline, 0, 80))
+        && data.sourceProvider in ['Google Jobs', 'LinkedIn Jobs', 'Other Existing Source']
+        && isValidString(data.originalUrl, 1, 600)
+        && (!('applicationUrl' in data) || isValidString(data.applicationUrl, 0, 600))
+        && (!('lastVerifiedAt' in data) || isValidString(data.lastVerifiedAt, 0, 80))
+        && data.status in ['active', 'expired', 'removed', 'flagged']
+        && data.isDemo is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSavedJob(data) {
+      return data.keys().hasAll(['ownerId', 'jobId', 'title', 'company', 'sourceProvider', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'jobId', 'title', 'company', 'location', 'employmentType', 'workMode', 'salary', 'sourceProvider', 'originalUrl', 'applicationUrl', 'skills', 'notes', 'isDemo', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidId(data.jobId)
+        && isValidString(data.title, 1, 240)
+        && isValidString(data.company, 1, 160)
+        && (!('location' in data) || isValidString(data.location, 0, 160))
+        && (!('employmentType' in data) || isValidString(data.employmentType, 0, 60))
+        && (!('workMode' in data) || isValidString(data.workMode, 0, 60))
+        && (!('salary' in data) || isValidString(data.salary, 0, 120))
+        && isValidString(data.sourceProvider, 1, 80)
+        && (!('originalUrl' in data) || isValidString(data.originalUrl, 0, 600))
+        && (!('applicationUrl' in data) || isValidString(data.applicationUrl, 0, 600))
+        && (!('skills' in data) || isValidStringList(data.skills, 20))
+        && (!('notes' in data) || isValidString(data.notes, 0, 1500))
+        && (!('isDemo' in data) || data.isDemo is bool)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidJobApplication(data) {
+      return data.keys().hasAll(['ownerId', 'jobId', 'title', 'company', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'jobId', 'title', 'company', 'sourceProvider', 'applicationUrl', 'status', 'coverLetterDraft', 'appliedDate', 'notes', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidId(data.jobId)
+        && isValidString(data.title, 1, 240)
+        && isValidString(data.company, 1, 160)
+        && (!('sourceProvider' in data) || isValidString(data.sourceProvider, 0, 80))
+        && (!('applicationUrl' in data) || isValidString(data.applicationUrl, 0, 600))
+        && data.status in ['Draft', 'Applied', 'Interviewing', 'Offer', 'Rejected', 'Withdrawn']
+        && (!('coverLetterDraft' in data) || isValidString(data.coverLetterDraft, 0, 4500))
+        && (!('appliedDate' in data) || isValidString(data.appliedDate, 0, 40))
+        && (!('notes' in data) || isValidString(data.notes, 0, 2000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidJobAlert(data) {
+      return data.keys().hasAll(['ownerId', 'keywords', 'country', 'active', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'keywords', 'category', 'country', 'location', 'workMode', 'employmentType', 'active', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidString(data.keywords, 1, 140)
+        && (!('category' in data) || isValidString(data.category, 0, 80))
+        && isValidString(data.country, 1, 80)
+        && (!('location' in data) || isValidString(data.location, 0, 120))
+        && (!('workMode' in data) || isValidString(data.workMode, 0, 60))
+        && (!('employmentType' in data) || isValidString(data.employmentType, 0, 60))
+        && data.active is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidScholarshipRecord(data) {
+      return data.keys().hasAll(['ownerId', 'title', 'provider', 'category', 'country', 'sourceUrl', 'sourceType', 'sourceVerificationStatus', 'status', 'isDemo', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'title', 'provider', 'description', 'category', 'country', 'state', 'city', 'eligibleLocations', 'educationLevels', 'degrees', 'courses', 'subjects', 'academicRequirements', 'financialRequirements', 'otherEligibilityCriteria', 'amount', 'currency', 'fundingType', 'benefits', 'startDate', 'deadline', 'academicYear', 'requiredDocuments', 'applicationInstructions', 'officialApplicationUrl', 'sourceUrl', 'sourceType', 'sourceVerificationStatus', 'publicationDate', 'lastVerifiedAt', 'status', 'verifiedFacts', 'isDemo', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidString(data.title, 1, 240)
+        && isValidString(data.provider, 1, 180)
+        && (!('description' in data) || isValidString(data.description, 0, 4000))
+        && isValidString(data.category, 1, 80)
+        && isValidString(data.country, 1, 80)
+        && (!('state' in data) || isValidString(data.state, 0, 80))
+        && (!('city' in data) || isValidString(data.city, 0, 80))
+        && (!('eligibleLocations' in data) || isValidStringList(data.eligibleLocations, 15))
+        && (!('educationLevels' in data) || isValidStringList(data.educationLevels, 10))
+        && (!('degrees' in data) || isValidStringList(data.degrees, 15))
+        && (!('courses' in data) || isValidStringList(data.courses, 15))
+        && (!('subjects' in data) || isValidStringList(data.subjects, 15))
+        && (!('academicRequirements' in data) || isValidString(data.academicRequirements, 0, 1000))
+        && (!('financialRequirements' in data) || isValidString(data.financialRequirements, 0, 1000))
+        && (!('otherEligibilityCriteria' in data) || isValidString(data.otherEligibilityCriteria, 0, 1500))
+        && (!('amount' in data) || isValidString(data.amount, 0, 120))
+        && (!('currency' in data) || isValidString(data.currency, 0, 20))
+        && (!('fundingType' in data) || data.fundingType in ['Full Funding', 'Partial Funding', 'Tuition Waiver', 'Stipend / Grant', 'Not specified'])
+        && (!('benefits' in data) || isValidStringList(data.benefits, 12))
+        && (!('startDate' in data) || isValidString(data.startDate, 0, 80))
+        && (!('deadline' in data) || isValidString(data.deadline, 0, 80))
+        && (!('academicYear' in data) || isValidString(data.academicYear, 0, 40))
+        && (!('requiredDocuments' in data) || isValidStringList(data.requiredDocuments, 15))
+        && (!('applicationInstructions' in data) || isValidString(data.applicationInstructions, 0, 2000))
+        && (!('officialApplicationUrl' in data) || isValidString(data.officialApplicationUrl, 0, 600))
+        && isValidString(data.sourceUrl, 1, 600)
+        && data.sourceType in ['Official Government Portal', 'Official Scholarship Provider', 'Official University Source', 'Secondary Source', 'Unverified Source']
+        && data.sourceVerificationStatus in ['Verified', 'Pending Review', 'Unverified', 'Rejected']
+        && (!('publicationDate' in data) || isValidString(data.publicationDate, 0, 80))
+        && (!('lastVerifiedAt' in data) || isValidString(data.lastVerifiedAt, 0, 80))
+        && data.status in ['Open', 'Upcoming', 'Closed', 'Expired']
+        && (!('verifiedFacts' in data) || isValidStringList(data.verifiedFacts, 15))
+        && data.isDemo is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSavedScholarship(data) {
+      return data.keys().hasAll(['ownerId', 'scholarshipId', 'title', 'provider', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'scholarshipId', 'title', 'provider', 'category', 'country', 'amount', 'fundingType', 'deadline', 'officialApplicationUrl', 'sourceType', 'sourceVerificationStatus', 'notes', 'isDemo', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidId(data.scholarshipId)
+        && isValidString(data.title, 1, 240)
+        && isValidString(data.provider, 1, 180)
+        && (!('category' in data) || isValidString(data.category, 0, 80))
+        && (!('country' in data) || isValidString(data.country, 0, 80))
+        && (!('amount' in data) || isValidString(data.amount, 0, 120))
+        && (!('fundingType' in data) || isValidString(data.fundingType, 0, 60))
+        && (!('deadline' in data) || isValidString(data.deadline, 0, 80))
+        && (!('officialApplicationUrl' in data) || isValidString(data.officialApplicationUrl, 0, 600))
+        && (!('sourceType' in data) || isValidString(data.sourceType, 0, 80))
+        && (!('sourceVerificationStatus' in data) || isValidString(data.sourceVerificationStatus, 0, 60))
+        && (!('notes' in data) || isValidString(data.notes, 0, 1500))
+        && (!('isDemo' in data) || data.isDemo is bool)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidScholarshipApplication(data) {
+      return data.keys().hasAll(['ownerId', 'scholarshipId', 'title', 'provider', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['ownerId', 'scholarshipId', 'title', 'provider', 'deadline', 'officialApplicationUrl', 'status', 'applicationDate', 'referenceNumber', 'reminderDate', 'notes', 'documentNames', 'statusHistory', 'createdAt', 'updatedAt'])
+        && isValidId(data.ownerId)
+        && isValidId(data.scholarshipId)
+        && isValidString(data.title, 1, 240)
+        && isValidString(data.provider, 1, 180)
+        && (!('deadline' in data) || isValidString(data.deadline, 0, 80))
+        && (!('officialApplicationUrl' in data) || isValidString(data.officialApplicationUrl, 0, 600))
+        && data.status in ['Interested', 'Saved', 'Eligibility Checking', 'Preparing Documents', 'Ready to Apply', 'Applied', 'Under Review', 'Selected', 'Rejected', 'Expired']
+        && (!('applicationDate' in data) || isValidString(data.applicationDate, 0, 40))
+        && (!('referenceNumber' in data) || isValidString(data.referenceNumber, 0, 120))
+        && (!('reminderDate' in data) || isValidString(data.reminderDate, 0, 40))
+        && (!('notes' in data) || isValidString(data.notes, 0, 3000))
+        && (!('documentNames' in data) || isValidStringList(data.documentNames, 20))
+        && (!('statusHistory' in data) || isValidStringList(data.statusHistory, 30))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidScholarshipReminder(data) {
+      return data.keys().hasAll(['ownerId', 'scholarshipId', 'scholarshipTitle', 'reminderDate', 'completed', 'createdAt'])
+        && data.keys().hasOnly(['ownerId', 'scholarshipId', 'scholarshipTitle', 'reminderDate', 'deadline', 'note', 'completed', 'createdAt'])
+        && isValidId(data.ownerId)
+        && isValidId(data.scholarshipId)
+        && isValidString(data.scholarshipTitle, 1, 240)
+        && isValidString(data.reminderDate, 1, 40)
+        && (!('deadline' in data) || isValidString(data.deadline, 0, 80))
+        && (!('note' in data) || isValidString(data.note, 0, 600))
+        && data.completed is bool
+        && data.createdAt is timestamp;
     }
 
     function isValidLeadAnalysis(data) {
@@ -307,7 +509,7 @@ service cloud.firestore {
       return data.keys().hasAll(['userId', 'type', 'title', 'message', 'read', 'createdAt'])
         && data.keys().hasOnly(['userId', 'type', 'title', 'message', 'read', 'createdAt'])
         && isValidId(data.userId)
-        && data.type in ['application', 'proposal', 'message', 'project', 'followup', 'opportunity']
+        && data.type in ['application', 'proposal', 'message', 'project', 'followup', 'opportunity', 'scholarship', 'job', 'deadline']
         && isValidString(data.title, 1, 160)
         && isValidString(data.message, 1, 600)
         && data.read is bool
@@ -330,7 +532,7 @@ service cloud.firestore {
       return data.keys().hasAll(['reporterId', 'targetType', 'targetId', 'reason', 'status', 'createdAt', 'updatedAt'])
         && data.keys().hasOnly(['reporterId', 'targetType', 'targetId', 'reason', 'details', 'status', 'createdAt', 'updatedAt'])
         && isValidId(data.reporterId)
-        && data.targetType in ['lead', 'opportunity', 'project', 'user']
+        && data.targetType in ['lead', 'opportunity', 'project', 'user', 'job', 'scholarship']
         && isValidString(data.targetId, 1, 128)
         && isValidString(data.reason, 3, 200)
         && (!('details' in data) || isValidString(data.details, 0, 1500))
@@ -360,7 +562,7 @@ service cloud.firestore {
       allow create: if isVerified() && isValidId(userId) && isOwner(userId)
         && isValidUserAccount(incoming())
         && incoming().uid == request.auth.uid
-        && incoming().role in ['freelancer', 'business']
+        && incoming().role in ['student', 'freelancer', 'business']
         && incoming().status == 'active'
         && incoming().createdAt == request.time
         && incoming().updatedAt == request.time;
@@ -383,6 +585,25 @@ service cloud.firestore {
       allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
       allow list: if isAdmin();
       allow write: if false;
+    }
+
+    // 2B. Student Profiles (Private: Owner or Admin ONLY)
+    match /studentProfiles/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isVerified() && isValidId(userId) && isOwner(userId)
+        && isValidStudentProfile(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(userId) && isValidStudentProfile(incoming()) && (
+        isAdmin() ||
+        (isOwner(userId)
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time)
+      );
+      allow delete: if isValidId(userId) && (isOwner(userId) || isAdmin());
     }
 
     // 3. Freelancer Profiles (Marketplace directory)
@@ -439,7 +660,7 @@ service cloud.firestore {
           && incoming().ownerId == existing().ownerId
           && incoming().createdAt == existing().createdAt
           && incoming().updatedAt == request.time
-          && incoming().diff(existing()).affectedKeys().hasOnly(['opportunityScore', 'confidenceScore', 'suggestedServices', 'aiExplanation', 'status', 'updatedAt']))
+          && incoming().diff(existing()).affectedKeys().hasOnly(['opportunityScore', 'confidenceScore', 'suggestedServices', 'aiExplanation', 'openingHours', 'placesEnriched', 'status', 'updatedAt']))
       );
       allow delete: if isValidId(leadId) && (isOwner(existing().ownerId) || isAdmin());
     }
@@ -461,6 +682,155 @@ service cloud.firestore {
           && incoming().diff(existing()).affectedKeys().hasOnly(['aiClassification', 'confidenceScore', 'requiredService', 'skillsRequired', 'updatedAt']))
       );
       allow delete: if isValidId(opportunityId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 6B. Jobs Directory & Saved Jobs / Applications / Alerts
+    match /jobs/{jobId} {
+      allow get: if isValidId(jobId) && (existing().status == 'active' || isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().status == 'active' || existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(jobId) && isValidJobListing(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(jobId) && isValidJobListing(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time)
+      );
+      allow delete: if isValidId(jobId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    match /savedJobs/{savedId} {
+      allow get: if isValidId(savedId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(savedId) && isValidSavedJob(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(savedId) && isValidSavedJob(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['notes', 'updatedAt']))
+      );
+      allow delete: if isValidId(savedId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    match /jobApplications/{appId} {
+      allow get: if isValidId(appId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(appId) && isValidJobApplication(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(appId) && isValidJobApplication(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'coverLetterDraft', 'appliedDate', 'notes', 'updatedAt']))
+      );
+      allow delete: if isValidId(appId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    match /jobAlerts/{alertId} {
+      allow get: if isValidId(alertId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(alertId) && isValidJobAlert(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(alertId) && isValidJobAlert(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time)
+      );
+      allow delete: if isValidId(alertId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 6C. Scholarship Hub Collections
+    match /scholarships/{scholarshipId} {
+      allow get: if isValidId(scholarshipId) && (
+        existing().sourceVerificationStatus == 'Verified' ||
+        isOwner(existing().ownerId) ||
+        isAdmin()
+      );
+      allow list: if existing().sourceVerificationStatus == 'Verified' || (
+        isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin())
+      );
+      allow create: if isVerified() && isValidId(scholarshipId) && isValidScholarshipRecord(incoming())
+        && incoming().ownerId == request.auth.uid
+        && (isAdmin() || incoming().sourceVerificationStatus in ['Pending Review', 'Unverified'])
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(scholarshipId) && isValidScholarshipRecord(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().sourceVerificationStatus == existing().sourceVerificationStatus
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time)
+      );
+      allow delete: if isValidId(scholarshipId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    match /savedScholarships/{savedId} {
+      allow get: if isValidId(savedId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(savedId) && isValidSavedScholarship(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(savedId) && isValidSavedScholarship(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['notes', 'updatedAt']))
+      );
+      allow delete: if isValidId(savedId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    match /scholarshipApplications/{appId} {
+      allow get: if isValidId(appId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(appId) && isValidScholarshipApplication(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(appId) && isValidScholarshipApplication(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'applicationDate', 'referenceNumber', 'reminderDate', 'notes', 'documentNames', 'statusHistory', 'updatedAt']))
+      );
+      allow delete: if isValidId(appId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    match /scholarshipReminders/{reminderId} {
+      allow get: if isValidId(reminderId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(reminderId) && isValidScholarshipReminder(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time;
+      allow update: if isVerified() && isValidId(reminderId) && isValidScholarshipReminder(incoming()) && (
+        isAdmin() ||
+        (isOwner(existing().ownerId)
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().diff(existing()).affectedKeys().hasOnly(['completed', 'reminderDate', 'note']))
+      );
+      allow delete: if isValidId(reminderId) && (isOwner(existing().ownerId) || isAdmin());
     }
 
     // 7. Lead Analyses

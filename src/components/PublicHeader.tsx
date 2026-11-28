@@ -3,7 +3,7 @@ import { Menu, Moon, Sun, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
-export type PublicPageRoute = 'home' | 'opportunities' | 'businesses' | 'projects' | 'terms' | 'privacy';
+export type PublicPageRoute = 'home' | 'opportunities' | 'businesses' | 'projects' | 'scholarships' | 'terms' | 'privacy';
 
 interface PublicHeaderProps {
   currentPage: PublicPageRoute;
@@ -23,9 +23,10 @@ export function PublicHeader({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems: Array<{ id: PublicPageRoute; label: string }> = [
-    { id: 'opportunities', label: 'Opportunities' },
+    { id: 'opportunities', label: 'Jobs & Hiring' },
     { id: 'businesses', label: 'Find Businesses' },
     { id: 'projects', label: 'Browse Projects' },
+    { id: 'scholarships', label: 'Scholarships' },
   ];
 
   const scrollToSection = (hash: string) => {

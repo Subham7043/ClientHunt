@@ -1,0 +1,1060 @@
+# MASTER ENHANCEMENT PROMPT — CLIENTHUNT AI
+## AI-Powered Business Leads, Job Discovery & Scholarship Hub
+
+Act as a senior full-stack developer, AI architect, API integration specialist, database designer, and UI/UX engineer.
+
+I already have an existing working application named **ClientHunt AI**, built using Google AI Studio. Your task is to enhance the existing application by integrating multiple discovery APIs and building a complete Scholarship Hub and Job Discovery System.
+
+**IMPORTANT: Do not rebuild the application from scratch. Do not remove, damage, rename, or break any existing working features. First inspect the existing codebase, architecture, components, authentication, database, API integrations, and current user flows. Then implement the enhancements inside the existing application.**
+
+---
+
+# 1. PRODUCT VISION
+
+Transform ClientHunt AI into a unified AI-powered opportunity platform with four major modules:
+
+1. Freelancer Hub — Find potential clients and business leads.
+2. Job & Project Discovery — Find real hiring opportunities and freelance projects.
+3. Scholarship Hub — Discover scholarships, fellowships, grants, and educational funding.
+4. Business Marketplace — Allow businesses to publish projects and freelancers to apply.
+
+An integrated AI Opportunity Engine should connect these modules while keeping their data and user experiences separate.
+
+The application must support students, freelancers, businesses, and administrators.
+
+# 2. API INTEGRATIONS
+
+I have added the following API secrets in Google AI Studio:
+
+- GOOGLE_MAPS_SEARCH_API
+- GOOGLE_MAPS_PLACES_API
+- GOOGLE_JOBS_API
+- LINKEDIN_JOBS_API
+
+Use these exact secret names when accessing the corresponding credentials.
+
+### API security requirements
+
+- Access secrets only from secure server-side code.
+- Never expose API keys in frontend JavaScript, HTML, browser network responses, or public repositories.
+- Never hardcode API keys.
+- Use environment variables or the secure server-side secret mechanism supported by the existing Google AI Studio project.
+- Do not create fake API responses and label them as live results.
+- Implement API error handling, retries, timeouts, rate limits, and request logging.
+- If an API is unavailable, display an appropriate message and preserve other application functionality.
+- Track API usage and estimated credit consumption where the provider makes that information available.
+- Do not assume that an endpoint is available simply because a secret exists. Verify the correct provider, endpoint, authentication format, parameters, response structure, and current API documentation.
+
+### A. GOOGLE_MAPS_SEARCH_API — Business Discovery
+
+Use this API to discover businesses based on user-selected locations, categories, and search terms.
+
+Business categories should include:
+
+- Restaurants and cafes
+- Hotels and hospitality
+- Real estate agencies
+- Coaching institutes
+- Schools and colleges
+- Hospitals and clinics
+- Gyms and fitness centres
+- Clothing and fashion brands
+- Startups
+- E-commerce businesses
+- Marketing agencies
+- Local manufacturers
+- Salons and beauty businesses
+- Photography studios
+- Travel agencies
+- Retail stores
+- Other local businesses
+
+Provide search filters:
+
+- Country
+- State
+- City
+- Locality
+- Business category
+- Business name
+- Business size, when reliably available
+- Website availability
+- Contact availability
+- Rating and review count, when available
+
+Support location-based discovery and multiple search queries.
+
+Create a locality-based discovery system so users can explore different neighbourhoods and business categories instead of repeatedly receiving the same popular results.
+
+Store source information, discovery time, provider identifiers, and original source links.
+
+### B. GOOGLE_MAPS_PLACES_API — Business Enrichment
+
+Use this API to enrich businesses discovered through Google Maps Search.
+
+Retrieve available information such as:
+
+- Business name
+- Address
+- Phone number
+- Website
+- Google Maps URL
+- Business category
+- Opening hours
+- Rating
+- Review count
+- Location coordinates
+- Available business details
+
+Important:
+
+- Use Places enrichment selectively to conserve API credits.
+- Do not make unnecessary enrichment requests for every result.
+- Cache results according to provider terms and permitted retention periods.
+- Do not invent missing contact information.
+- Mark unavailable fields as "Not available".
+- Clearly distinguish information returned by the provider from AI-generated analysis.
+
+### C. GOOGLE_JOBS_API — Job Discovery
+
+Use this API to discover publicly available job opportunities.
+
+Include job categories such as:
+
+- Web Development
+- Frontend Development
+- Backend Development
+- Full Stack Development
+- App Development
+- Graphic Design
+- Video Editing
+- UI/UX Design
+- Digital Marketing
+- SEO
+- Social Media Management
+- Content Writing
+- Data Analytics
+- Artificial Intelligence
+- Machine Learning
+- Cybersecurity
+- Cloud Computing
+- DevOps
+- Software Engineering
+- Internships
+- Remote Jobs
+- Freelance Projects
+
+Search filters:
+
+- Job title
+- Skill
+- Country
+- State
+- City
+- Remote / Hybrid / On-site
+- Employment type
+- Experience level
+- Company
+- Date posted
+- Salary or budget, if provided
+- Internship / Full-time / Part-time / Contract
+
+For every job, store:
+
+- Job title
+- Company
+- Description
+- Requirements
+- Required skills
+- Employment type
+- Location
+- Salary or budget, if available
+- Posted date
+- Application deadline, if available
+- Original job URL
+- Application URL
+- Source provider
+- Last verified date
+
+### D. LINKEDIN_JOBS_API — Additional Job Discovery
+
+Use this API as a separate job discovery provider.
+
+- Search relevant job opportunities.
+- Extract available job details.
+- Identify companies and hiring organisations.
+- Retrieve original job links and application links when available.
+- Identify remote, hybrid, and on-site opportunities.
+- Capture skills, experience, location, employment type, and salary when provided.
+- Record source provider and retrieval timestamp.
+
+Implement a common job data structure so Google Jobs and LinkedIn Jobs results appear in one unified job discovery interface.
+
+Deduplicate opportunities across providers using job identifiers, normalized titles, company names, locations, and original URLs.
+
+Do not falsely claim that a company is hiring if no actual job listing supports that claim.
+
+Respect the provider's API terms, access restrictions, and rate limits. Do not bypass login restrictions or platform protections.
+
+---
+
+# 3. EXISTING GOOGLE SEARCH SCRAPER — PRESERVE AND REUSE
+
+My existing application already has a working Google Search Scraper integration.
+
+Preserve this integration and reuse its existing implementation for scholarship discovery.
+
+Do not replace it, remove it, or create a duplicate integration.
+
+First inspect the existing implementation and identify how it authenticates, sends requests, and processes results.
+
+Use the existing configured credentials and server-side implementation. Do not invent a new secret name if the existing secret name is not available.
+
+Use targeted searches for:
+
+- Government scholarships in India
+- Rajasthan government scholarships
+- Central government scholarships
+- State government scholarships
+- University scholarships
+- Private foundation scholarships
+- International scholarships
+- Fully funded scholarships
+- Partial funding opportunities
+- Merit-based scholarships
+- Need-based scholarships
+- Minority and category-based scholarships
+- Research grants
+- Fellowships
+- Undergraduate scholarships
+- Postgraduate scholarships
+- Master's scholarships
+- PhD scholarships
+- Diploma and vocational scholarships
+
+Example search queries:
+
+- Government scholarships India 2026 official portal
+- Rajasthan scholarship 2026 official website
+- MCA scholarship India 2026
+- Cybersecurity scholarship India
+- Postgraduate scholarships India official
+- Fully funded master's scholarships 2027
+- International scholarships for Indian students
+- University scholarships for computer science students
+- Private foundation education grants India
+
+Search results are discovery signals, not proof of scholarship availability.
+
+Whenever possible, visit and extract information from the original official scholarship provider page.
+
+Never invent scholarship details based on search snippets.
+
+Do not use Google Jobs or LinkedIn Jobs as scholarship data sources.
+
+Google Maps APIs may be used to discover educational institutions, universities, and colleges, but must not be treated as scholarship listing APIs.
+
+Do not add Universal Search API.
+
+Do not assume that a dedicated Google Scholarship API is configured.
+
+---
+
+# 4. SCHOLARSHIP HUB — COMPLETE MODULE
+
+Create a dedicated section called **Scholarship Hub**.
+
+It must have its own dashboard, navigation, filters, data model, and student experience.
+
+### Scholarship Hub pages
+
+1. Scholarship Overview
+2. Discover Scholarships
+3. Recommended for Me
+4. Government Scholarships
+5. Private Scholarships
+6. International Scholarships
+7. University Scholarships
+8. Fellowships and Grants
+9. Saved Scholarships
+10. Application Tracker
+11. AI Eligibility Checker
+12. Scholarship Comparison
+13. Deadline Calendar
+14. Student Profile
+15. Notifications
+16. Settings
+
+### Scholarship discovery filters
+
+- Country
+- State
+- City, when relevant
+- Education level
+- Degree
+- Course
+- Subject
+- Institution
+- Academic year
+- Government / Private / University
+- Domestic / International
+- Merit-based / Need-based / Research-based
+- Full funding / Partial funding
+- Scholarship amount
+- Application deadline
+- Open / Upcoming / Closed
+- Eligibility criteria
+
+Allow students to search scholarships using natural language.
+
+Example:
+
+"Find scholarships for an MCA student studying cybersecurity in India."
+
+The AI should convert this request into structured search parameters, retrieve relevant results, and explain why each scholarship matches.
+
+### Scholarship card design
+
+Every scholarship card should display:
+
+- Scholarship title
+- Provider name
+- Short description
+- Scholarship amount
+- Currency
+- Full or partial funding
+- Eligible education level
+- Eligible courses
+- Eligible locations
+- Application deadline
+- Current application status
+- Source verification label
+- Last verified date
+- View Details button
+- Save Scholarship button
+- Check Eligibility button
+- Official Application button
+
+Never show invented amounts, deadlines, eligibility requirements, or official URLs.
+
+If a field is missing, display "Not specified".
+
+### Scholarship detail page
+
+Include:
+
+- Overview
+- Provider details
+- Eligibility requirements
+- Academic requirements
+- Financial requirements
+- Eligible countries and states
+- Eligible courses
+- Funding amount
+- Benefits
+- Required documents
+- Application process
+- Important dates
+- Official source
+- Official application link
+- Last verification date
+
+Separate verified information from AI-generated explanations.
+
+---
+
+# 5. AI SCHOLARSHIP ELIGIBILITY ENGINE
+
+Build an AI-powered eligibility checker.
+
+Collect relevant student information:
+
+- Education level
+- Degree
+- Course
+- Specialization
+- Country
+- State
+- Institution
+- Academic score or percentage (optional)
+- Graduation year
+- Family income range (optional, only when relevant)
+- Other eligibility details requested by a particular scholarship
+
+Compare the student profile with scholarship eligibility criteria.
+
+Return one of four results:
+
+1. Eligible
+2. Potentially Eligible
+3. Not Eligible
+4. Insufficient Information
+
+For every result, explain:
+
+- Matching criteria
+- Unmatched criteria
+- Missing information
+- Important conditions
+- Required documents
+- Reason for the result
+- Official source reference
+
+Show a transparent match score with an explanation of how it was calculated.
+
+Do not treat the AI match score as an official eligibility decision.
+
+Never guarantee scholarship selection.
+
+Never infer sensitive eligibility conditions without sufficient evidence.
+
+---
+
+# 6. SCHOLARSHIP APPLICATION TRACKER
+
+Allow students to manage their scholarship applications.
+
+Statuses:
+
+- Interested
+- Saved
+- Eligibility Checking
+- Preparing Documents
+- Ready to Apply
+- Applied
+- Under Review
+- Selected
+- Rejected
+- Expired
+
+Features:
+
+- Save scholarship
+- Add personal notes
+- Add application date
+- Record application reference number
+- Track application progress
+- Upload relevant documents securely, if supported
+- Add reminders
+- Track deadlines
+- View application history
+
+Provide a calendar showing upcoming deadlines.
+
+The platform should direct students to official application websites. Do not claim to submit applications automatically unless an authorized provider integration actually supports it.
+
+---
+
+# 7. JOB & OPPORTUNITY HUB
+
+Create a dedicated Job Discovery section for freelancers and job seekers.
+
+Separate these two types of results:
+
+### Type A: Actual Hiring Opportunities
+
+These are real job postings retrieved from Google Jobs and LinkedIn Jobs.
+
+Display only opportunities supported by source listings.
+
+### Type B: Potential Business Leads
+
+These are businesses discovered through Google Maps Search and enriched using Google Maps Places.
+
+They may need services such as:
+
+- Website development
+- Social media management
+- Video editing
+- Graphic design
+- SEO
+- Digital marketing
+- App development
+- AI automation
+- Cybersecurity
+- Cloud services
+
+A potential business lead is not automatically a hiring opportunity.
+
+Clearly label each result as either "Hiring Opportunity" or "Potential Client Lead".
+
+### Job dashboard
+
+Create:
+
+- Job Overview
+- Discover Jobs
+- Recommended Jobs
+- Remote Jobs
+- Internships
+- Freelance Projects
+- Saved Jobs
+- Applied Jobs
+- Job Alerts
+- Job Details
+
+### AI Job Matching
+
+Analyze the freelancer profile and job requirements.
+
+Show:
+
+- Skill match
+- Experience match
+- Location compatibility
+- Employment type compatibility
+- Missing skills
+- Match score
+- Reasons for recommendation
+
+Generate tailored application drafts, cover letters, and proposals based on the actual job description and user profile.
+
+Never fabricate experience, qualifications, or projects.
+
+---
+
+# 8. AI BUSINESS LEAD ANALYZER
+
+For businesses discovered through Maps Search and Places, create an AI-powered analysis system.
+
+Analyze available public business information and identify potential service opportunities.
+
+Example:
+
+Business: Local Restaurant
+
+Possible opportunities:
+- Website improvement
+- Online ordering website
+- Social media content
+- Menu design
+- Promotional video editing
+
+Show:
+
+- Business overview
+- Available online presence
+- Website status
+- Available social links
+- Potential service requirements
+- Opportunity score from 0–100
+- Confidence score
+- Supporting evidence
+- Recommended outreach approach
+
+Clearly label recommendations as AI-generated suggestions, not confirmed business requirements.
+
+Do not claim a business needs a service unless reliable evidence supports that claim.
+
+### Outreach Assistant
+
+Generate personalized drafts for:
+
+- Email
+- WhatsApp
+- Instagram DM
+- LinkedIn message
+
+Allow users to edit and copy messages.
+
+Do not send mass unsolicited messages automatically.
+
+---
+
+# 9. USER ROLES AND DASHBOARDS
+
+Support the following roles:
+
+### Student
+
+- Student Dashboard
+- Scholarship Hub
+- AI Eligibility Checker
+- Saved Scholarships
+- Application Tracker
+- Deadline Calendar
+- Student Profile
+- Notifications
+
+### Freelancer
+
+- Freelancer Dashboard
+- Business Leads
+- Job Discovery
+- Recommended Opportunities
+- Saved Leads
+- Outreach Assistant
+- CRM
+- Marketplace Projects
+- Proposals
+- Portfolio
+
+### Business / Client
+
+- Business Dashboard
+- Company Profile
+- Publish Project
+- Manage Projects
+- View Applications
+- Shortlist Freelancers
+- Manage Proposals
+- Communication
+
+### Admin
+
+- Admin Dashboard
+- User Management
+- Business Management
+- Job Management
+- Scholarship Management
+- Source Verification
+- Duplicate Management
+- API Usage Monitoring
+- Failed Request Logs
+- System Health
+- Audit Logs
+
+Do not allow users to assign themselves the Admin role.
+
+Existing user accounts and roles must remain compatible.
+
+---
+
+# 10. BUSINESS MARKETPLACE
+
+Preserve the existing Business Marketplace if already implemented.
+
+Businesses should be able to:
+
+- Register and create a company profile.
+- Publish freelance projects.
+- Add project descriptions.
+- Select categories.
+- Specify budgets and deadlines.
+- Specify required skills.
+- Choose remote, hybrid, or on-site work.
+- Review freelancer applications.
+- Shortlist, accept, or reject proposals.
+
+Freelancers should be able to:
+
+- Browse projects.
+- Apply with proposals.
+- Add portfolio links.
+- Mention estimated price.
+- Specify delivery time.
+- Track proposal status.
+
+Proposal statuses:
+
+- Submitted
+- Viewed
+- Shortlisted
+- Accepted
+- Rejected
+- Withdrawn
+
+---
+
+# 11. AI OPPORTUNITY ENGINE
+
+Build a central AI engine that supports all modules.
+
+It should:
+
+1. Understand user search intent.
+2. Generate relevant search queries.
+3. Select the correct discovery provider.
+4. Retrieve results through the appropriate API.
+5. Normalize different provider responses.
+6. Remove duplicate records.
+7. Classify results.
+8. Analyze available evidence.
+9. Match results with user profiles.
+10. Generate explanations and recommendations.
+
+Provider selection rules:
+
+- Business discovery → Google Maps Search
+- Business enrichment → Google Maps Places
+- Job discovery → Google Jobs and LinkedIn Jobs
+- Scholarship discovery → Existing Google Search Scraper
+- Educational institution discovery → Google Maps Search and Places where useful
+
+Do not send scholarship queries to job APIs.
+
+Do not send job queries to scholarship discovery.
+
+Do not use Google Maps results as proof of hiring.
+
+Do not mix scholarship records with business leads.
+
+---
+
+# 12. DATABASE AND BACKEND
+
+Inspect the current database before creating collections or changing schemas.
+
+Reuse existing collections where appropriate and migrate carefully.
+
+If the application uses Firebase, maintain Firebase Authentication, Cloud Firestore, and Firestore Security Rules.
+
+Suggested collections:
+
+users
+freelancerProfiles
+businessProfiles
+studentProfiles
+leads
+leadSources
+leadAnalyses
+savedLeads
+pipelines
+jobs
+jobSources
+savedJobs
+jobApplications
+jobAlerts
+scholarships
+scholarshipSources
+scholarshipEligibility
+savedScholarships
+scholarshipApplications
+scholarshipReminders
+scholarshipSearchHistory
+educationInstitutions
+projects
+proposals
+conversations
+messages
+notifications
+apiUsageLogs
+verificationLogs
+auditLogs
+
+Adapt these names to the existing database instead of creating unnecessary duplicate collections.
+
+### Scholarship data structure
+
+Each scholarship record should support:
+
+- id
+- title
+- provider
+- description
+- category
+- country
+- state
+- eligibleLocations
+- educationLevels
+- degrees
+- courses
+- subjects
+- academicRequirements
+- financialRequirements
+- otherEligibilityCriteria
+- amount
+- currency
+- fundingType
+- benefits
+- startDate
+- deadline
+- requiredDocuments
+- applicationInstructions
+- officialApplicationUrl
+- sourceUrl
+- sourceType
+- sourceVerificationStatus
+- publicationDate
+- lastVerifiedAt
+- status
+- createdAt
+- updatedAt
+
+### Job data structure
+
+Each job record should support:
+
+- id
+- title
+- company
+- description
+- requirements
+- skills
+- location
+- country
+- employmentType
+- workMode
+- salary
+- currency
+- postedDate
+- deadline
+- sourceProvider
+- originalUrl
+- applicationUrl
+- lastVerifiedAt
+- status
+
+---
+
+# 13. DATA VERIFICATION AND TRUST
+
+Build a source verification system.
+
+Scholarship source labels:
+
+- Official Government Portal
+- Official Scholarship Provider
+- Official University Source
+- Secondary Source
+- Unverified Source
+
+Job source labels:
+
+- Google Jobs
+- LinkedIn Jobs
+- Other Existing Source
+
+Business source labels:
+
+- Google Maps Search
+- Google Maps Places
+
+Important rules:
+
+- Search snippets alone do not make a scholarship verified.
+- Verify critical scholarship details using original provider pages wherever possible.
+- Do not label a scholarship as officially verified unless its official source supports the information.
+- Recheck deadlines and application status.
+- Identify expired opportunities.
+- Flag conflicting or incomplete information.
+- Maintain source links and timestamps.
+- Never fabricate contact details, scholarship amounts, job salaries, or application links.
+
+---
+
+# 14. API CREDIT AND PERFORMANCE MANAGEMENT
+
+Since API usage has a cost, implement efficient discovery.
+
+- Do not repeatedly search identical queries.
+- Deduplicate results before expensive enrichment.
+- Enrich only selected business leads.
+- Cache responses only as permitted by provider terms.
+- Use pagination carefully.
+- Add user-level search limits.
+- Add server-side rate limiting.
+- Track provider requests.
+- Track successful and failed requests.
+- Estimate credit consumption when exact usage data is unavailable.
+- Show estimated usage separately from confirmed usage.
+- Add an admin API monitoring dashboard.
+- Maintain a configurable API usage budget.
+
+Never hardcode an assumed credit cost as an official provider rate.
+
+---
+
+# 15. UI/UX DESIGN
+
+Create a modern, professional SaaS dashboard.
+
+Design direction:
+
+- Premium dark/light theme support
+- Clean typography
+- Modern sidebar navigation
+- Responsive cards
+- Professional charts
+- Search-first interfaces
+- Advanced filters
+- Clear status badges
+- Smooth transitions
+- Useful empty states
+- Loading skeletons
+- Error states
+- Mobile-friendly layouts
+
+Use a consistent design system across the Freelancer Hub, Job Hub, Scholarship Hub, and Business Marketplace.
+
+Keep each module visually identifiable without making the application feel like separate disconnected products.
+
+The sidebar should clearly separate:
+
+- Overview
+- Freelancer Hub
+- Job Discovery
+- Scholarship Hub
+- Business Marketplace
+- CRM
+- Notifications
+- Profile
+- Settings
+
+Show only navigation items relevant to the logged-in user's role.
+
+---
+
+# 16. SECURITY AND PRIVACY
+
+Implement:
+
+- Server-side API calls
+- Secure authentication
+- Role-based authorization
+- Firestore Security Rules
+- Input validation
+- Secure file uploads
+- User-specific access control
+- API rate limiting
+- Audit logs
+- Protection against unauthorized data access
+
+Students must only access their own private profile, saved scholarships, application records, reminders, and documents.
+
+Freelancers must only access their own private profiles, saved leads, and applications.
+
+Businesses must only manage their own projects and applications.
+
+Never expose private user data to other users.
+
+Do not collect Aadhaar numbers, banking passwords, or unnecessary sensitive documents.
+
+---
+
+# 17. ADMIN DASHBOARD
+
+Create a complete admin control panel.
+
+Admin should be able to monitor:
+
+- Total users
+- Students
+- Freelancers
+- Businesses
+- Total business leads
+- Total jobs discovered
+- Total scholarships discovered
+- Verified scholarships
+- Unverified scholarships
+- Expired scholarships
+- Duplicate records
+- API requests
+- Estimated API usage
+- Failed API requests
+- Search activity
+- Source health
+
+Add scholarship management actions:
+
+- Review
+- Verify
+- Reject
+- Edit
+- Mark Expired
+- Merge Duplicate
+- Recheck Deadline
+
+Add job management actions:
+
+- Review
+- Remove invalid listing
+- Mark Expired
+- Merge Duplicate
+- Recheck Source
+
+---
+
+# 18. IMPLEMENTATION PLAN
+
+Implement the enhancement in controlled phases.
+
+### Phase 1 — Existing Application Audit
+
+- Inspect existing application.
+- Identify framework and architecture.
+- Identify current authentication and database.
+- Identify the existing Google Search Scraper.
+- Identify existing dashboard and user roles.
+- Identify current working features.
+- Create a safe implementation plan.
+
+### Phase 2 — API Integration
+
+Integrate:
+
+- GOOGLE_MAPS_SEARCH_API
+- GOOGLE_MAPS_PLACES_API
+- GOOGLE_JOBS_API
+- LINKEDIN_JOBS_API
+
+Reuse the existing Google Search Scraper for scholarship discovery.
+
+Build separate provider adapters and common data structures.
+
+### Phase 3 — Job Discovery
+
+Implement Google Jobs and LinkedIn Jobs discovery, filters, deduplication, job details, saved jobs, and AI matching.
+
+### Phase 4 — Business Lead Discovery
+
+Implement Maps Search, selective Places enrichment, AI business analysis, opportunity scoring, and CRM integration.
+
+### Phase 5 — Scholarship Hub
+
+Build student role, student onboarding, scholarship discovery, eligibility engine, saved scholarships, application tracker, deadline calendar, and admin verification.
+
+### Phase 6 — Marketplace and Integration
+
+Connect existing marketplace features with freelancer and business dashboards without breaking existing functionality.
+
+### Phase 7 — Security and Testing
+
+Test:
+
+- Every API integration
+- Secret handling
+- Search results
+- Pagination
+- Deduplication
+- Role permissions
+- Student eligibility flow
+- Scholarship tracking
+- Job application flow
+- Business lead CRM
+- Mobile responsiveness
+- Error handling
+- Database security
+
+### Phase 8 — Final Quality Check
+
+Before declaring completion:
+
+- Confirm all existing features still work.
+- Confirm all four configured APIs are integrated where appropriate.
+- Confirm the existing Google Search Scraper still works.
+- Confirm Universal Search is not added.
+- Confirm scholarship and job results are separated.
+- Confirm no fake live data is displayed.
+- Confirm all important buttons work.
+- Confirm API keys are not exposed.
+- Confirm database permissions are correct.
+- Confirm all modules work on desktop and mobile.
+
+---
+
+# FINAL DEVELOPMENT INSTRUCTION
+
+Build this as a real, functional, scalable application—not just a visual prototype.
+
+Prioritize working integrations, reliable data, security, accurate source attribution, and a smooth user experience.
+
+Do not simply create placeholder pages or buttons.
+
+Do not replace working existing features with mockups.
+
+If any API endpoint, field, or feature is unsupported, explain the limitation and implement a safe fallback instead of pretending it works.
+
+**Most important: Preserve the existing ClientHunt AI application, reuse its working Google Search Scraper, integrate only the four configured API secrets listed above, and build the complete Job Discovery and Scholarship Hub as additional modules.**
+
+Start by auditing the existing project, then implement the enhancements phase by phase.

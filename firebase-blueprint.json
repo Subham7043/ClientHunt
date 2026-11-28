@@ -9,7 +9,7 @@
         "email": { "type": "string", "format": "email", "maxLength": 254 },
         "displayName": { "type": "string", "minLength": 1, "maxLength": 120 },
         "photoURL": { "type": "string", "maxLength": 500 },
-        "role": { "type": "string", "enum": ["freelancer", "business", "admin"] },
+        "role": { "type": "string", "enum": ["student", "freelancer", "business", "admin"] },
         "status": { "type": "string", "enum": ["active", "suspended"] },
         "onboardingCompleted": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" },
@@ -27,6 +27,32 @@
         "grantedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email", "grantedAt"]
+    },
+    "StudentProfile": {
+      "title": "StudentProfile",
+      "description": "Private student academic & eligibility profile (no sensitive national ID or banking data).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "fullName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "educationLevel": { "type": "string", "enum": ["High School", "Diploma / Vocational", "Undergraduate", "Postgraduate", "PhD / Doctoral", "Postdoctoral"] },
+        "degree": { "type": "string", "maxLength": 120 },
+        "course": { "type": "string", "maxLength": 120 },
+        "specialization": { "type": "string", "maxLength": 120 },
+        "country": { "type": "string", "maxLength": 80 },
+        "state": { "type": "string", "maxLength": 80 },
+        "city": { "type": "string", "maxLength": 80 },
+        "institution": { "type": "string", "maxLength": 180 },
+        "academicScore": { "type": "string", "maxLength": 60 },
+        "graduationYear": { "type": "string", "maxLength": 20 },
+        "incomeRange": { "type": "string", "maxLength": 80 },
+        "interests": { "type": "array" },
+        "preferredFunding": { "type": "string", "enum": ["Any", "Full Funding", "Partial Funding"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "fullName", "educationLevel", "degree", "course", "country", "state", "institution", "graduationYear", "createdAt", "updatedAt"]
     },
     "FreelancerProfile": {
       "title": "FreelancerProfile",
@@ -87,10 +113,13 @@
         "country": { "type": "string", "maxLength": 80 },
         "state": { "type": "string", "maxLength": 80 },
         "city": { "type": "string", "maxLength": 80 },
+        "locality": { "type": "string", "maxLength": 100 },
         "website": { "type": "string", "maxLength": 400 },
         "publicPhone": { "type": "string", "maxLength": 60 },
         "publicEmail": { "type": "string", "maxLength": 254 },
         "instagramUrl": { "type": "string", "maxLength": 400 },
+        "openingHours": { "type": "array" },
+        "placesEnriched": { "type": "boolean" },
         "source": { "type": "string", "maxLength": 80 },
         "sourceUrl": { "type": "string", "maxLength": 600 },
         "providerId": { "type": "string", "maxLength": 140 },
@@ -134,6 +163,186 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["ownerId", "title", "originalText", "sourceName", "sourceUrl", "aiClassification", "confidenceScore", "isDemo", "createdAt", "updatedAt"]
+    },
+    "JobListing": {
+      "title": "JobListing",
+      "description": "Unified job listing retrieved from Google Jobs or LinkedIn Jobs.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "company": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "description": { "type": "string", "maxLength": 4000 },
+        "requirements": { "type": "array" },
+        "skills": { "type": "array" },
+        "location": { "type": "string", "maxLength": 160 },
+        "country": { "type": "string", "maxLength": 80 },
+        "employmentType": { "type": "string", "enum": ["Full-time", "Part-time", "Contract", "Internship", "Freelance", "Not specified"] },
+        "workMode": { "type": "string", "enum": ["Remote", "Hybrid", "On-site", "Not specified"] },
+        "salary": { "type": "string", "maxLength": 120 },
+        "postedDate": { "type": "string", "maxLength": 80 },
+        "deadline": { "type": "string", "maxLength": 80 },
+        "sourceProvider": { "type": "string", "enum": ["Google Jobs", "LinkedIn Jobs", "Other Existing Source"] },
+        "originalUrl": { "type": "string", "maxLength": 600 },
+        "applicationUrl": { "type": "string", "maxLength": 600 },
+        "status": { "type": "string", "enum": ["active", "expired", "removed", "flagged"] },
+        "isDemo": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "title", "company", "sourceProvider", "originalUrl", "status", "isDemo", "createdAt", "updatedAt"]
+    },
+    "SavedJob": {
+      "title": "SavedJob",
+      "description": "User saved job listing.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "jobId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "company": { "type": "string", "maxLength": 160 },
+        "location": { "type": "string", "maxLength": 160 },
+        "employmentType": { "type": "string", "maxLength": 60 },
+        "workMode": { "type": "string", "maxLength": 60 },
+        "salary": { "type": "string", "maxLength": 120 },
+        "sourceProvider": { "type": "string", "maxLength": 80 },
+        "originalUrl": { "type": "string", "maxLength": 600 },
+        "applicationUrl": { "type": "string", "maxLength": 600 },
+        "skills": { "type": "array" },
+        "notes": { "type": "string", "maxLength": 1500 },
+        "isDemo": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "jobId", "title", "company", "sourceProvider", "createdAt", "updatedAt"]
+    },
+    "JobApplication": {
+      "title": "JobApplication",
+      "description": "User tracked job application and tailored cover letter draft.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "jobId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "company": { "type": "string", "maxLength": 160 },
+        "sourceProvider": { "type": "string", "maxLength": 80 },
+        "applicationUrl": { "type": "string", "maxLength": 600 },
+        "status": { "type": "string", "enum": ["Draft", "Applied", "Interviewing", "Offer", "Rejected", "Withdrawn"] },
+        "coverLetterDraft": { "type": "string", "maxLength": 4500 },
+        "appliedDate": { "type": "string", "maxLength": 40 },
+        "notes": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "jobId", "title", "company", "status", "createdAt", "updatedAt"]
+    },
+    "JobAlert": {
+      "title": "JobAlert",
+      "description": "Saved job alert criteria.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "keywords": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "category": { "type": "string", "maxLength": 80 },
+        "country": { "type": "string", "maxLength": 80 },
+        "location": { "type": "string", "maxLength": 120 },
+        "workMode": { "type": "string", "maxLength": 60 },
+        "employmentType": { "type": "string", "maxLength": 60 },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "keywords", "country", "active", "createdAt", "updatedAt"]
+    },
+    "ScholarshipRecord": {
+      "title": "ScholarshipRecord",
+      "description": "Scholarship record with explicit source verification label and status.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "provider": { "type": "string", "maxLength": 180 },
+        "description": { "type": "string", "maxLength": 4000 },
+        "category": { "type": "string", "maxLength": 80 },
+        "country": { "type": "string", "maxLength": 80 },
+        "state": { "type": "string", "maxLength": 80 },
+        "amount": { "type": "string", "maxLength": 120 },
+        "currency": { "type": "string", "maxLength": 20 },
+        "fundingType": { "type": "string", "enum": ["Full Funding", "Partial Funding", "Tuition Waiver", "Stipend / Grant", "Not specified"] },
+        "deadline": { "type": "string", "maxLength": 80 },
+        "officialApplicationUrl": { "type": "string", "maxLength": 600 },
+        "sourceUrl": { "type": "string", "maxLength": 600 },
+        "sourceType": { "type": "string", "enum": ["Official Government Portal", "Official Scholarship Provider", "Official University Source", "Secondary Source", "Unverified Source"] },
+        "sourceVerificationStatus": { "type": "string", "enum": ["Verified", "Pending Review", "Unverified", "Rejected"] },
+        "status": { "type": "string", "enum": ["Open", "Upcoming", "Closed", "Expired"] },
+        "isDemo": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "title", "provider", "category", "country", "sourceUrl", "sourceType", "sourceVerificationStatus", "status", "isDemo", "createdAt", "updatedAt"]
+    },
+    "SavedScholarship": {
+      "title": "SavedScholarship",
+      "description": "Student saved scholarship record.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "scholarshipId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "provider": { "type": "string", "maxLength": 180 },
+        "category": { "type": "string", "maxLength": 80 },
+        "country": { "type": "string", "maxLength": 80 },
+        "amount": { "type": "string", "maxLength": 120 },
+        "fundingType": { "type": "string", "maxLength": 60 },
+        "deadline": { "type": "string", "maxLength": 80 },
+        "officialApplicationUrl": { "type": "string", "maxLength": 600 },
+        "sourceType": { "type": "string", "maxLength": 80 },
+        "sourceVerificationStatus": { "type": "string", "maxLength": 60 },
+        "notes": { "type": "string", "maxLength": 1500 },
+        "isDemo": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "scholarshipId", "title", "provider", "createdAt", "updatedAt"]
+    },
+    "ScholarshipApplication": {
+      "title": "ScholarshipApplication",
+      "description": "Student scholarship application tracker with status, reference number, and notes.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "scholarshipId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "provider": { "type": "string", "maxLength": 180 },
+        "deadline": { "type": "string", "maxLength": 80 },
+        "officialApplicationUrl": { "type": "string", "maxLength": 600 },
+        "status": { "type": "string", "enum": ["Interested", "Saved", "Eligibility Checking", "Preparing Documents", "Ready to Apply", "Applied", "Under Review", "Selected", "Rejected", "Expired"] },
+        "applicationDate": { "type": "string", "maxLength": 40 },
+        "referenceNumber": { "type": "string", "maxLength": 120 },
+        "reminderDate": { "type": "string", "maxLength": 40 },
+        "notes": { "type": "string", "maxLength": 3000 },
+        "documentNames": { "type": "array" },
+        "statusHistory": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "scholarshipId", "title", "provider", "status", "createdAt", "updatedAt"]
+    },
+    "ScholarshipReminder": {
+      "title": "ScholarshipReminder",
+      "description": "Personal student deadline reminder for a scholarship.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "scholarshipId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "scholarshipTitle": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "reminderDate": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "deadline": { "type": "string", "maxLength": 80 },
+        "note": { "type": "string", "maxLength": 600 },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "scholarshipId", "scholarshipTitle", "reminderDate", "completed", "createdAt"]
     },
     "LeadAnalysis": {
       "title": "LeadAnalysis",
@@ -313,7 +522,7 @@
       "type": "object",
       "properties": {
         "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
-        "type": { "type": "string", "enum": ["application", "proposal", "message", "project", "followup", "opportunity"] },
+        "type": { "type": "string", "enum": ["application", "proposal", "message", "project", "followup", "opportunity", "scholarship", "job", "deadline"] },
         "title": { "type": "string", "minLength": 1, "maxLength": 160 },
         "message": { "type": "string", "minLength": 1, "maxLength": 600 },
         "read": { "type": "boolean" },
@@ -338,11 +547,11 @@
     },
     "AbuseReport": {
       "title": "AbuseReport",
-      "description": "User-submitted report of inaccurate or abusive lead/opportunity content.",
+      "description": "User-submitted report of inaccurate or abusive lead/opportunity/job/scholarship content.",
       "type": "object",
       "properties": {
         "reporterId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
-        "targetType": { "type": "string", "enum": ["lead", "opportunity", "project", "user"] },
+        "targetType": { "type": "string", "enum": ["lead", "opportunity", "project", "user", "job", "scholarship"] },
         "targetId": { "type": "string", "minLength": 1, "maxLength": 128 },
         "reason": { "type": "string", "minLength": 3, "maxLength": 200 },
         "details": { "type": "string", "maxLength": 1500 },
@@ -377,6 +586,10 @@
       "schema": { "$ref": "#/entities/AdminRegistry" },
       "description": "Trusted admin UID registry."
     },
+    "/studentProfiles/{userId}": {
+      "schema": { "$ref": "#/entities/StudentProfile" },
+      "description": "Private student academic profiles (owner or admin only)."
+    },
     "/freelancerProfiles/{userId}": {
       "schema": { "$ref": "#/entities/FreelancerProfile" },
       "description": "Freelancer public profiles."
@@ -392,6 +605,38 @@
     "/opportunities/{opportunityId}": {
       "schema": { "$ref": "#/entities/HiringOpportunity" },
       "description": "Discovered explicit hiring opportunities owned by users."
+    },
+    "/jobs/{jobId}": {
+      "schema": { "$ref": "#/entities/JobListing" },
+      "description": "Curated and saved unified jobs (Google Jobs & LinkedIn Jobs)."
+    },
+    "/savedJobs/{savedId}": {
+      "schema": { "$ref": "#/entities/SavedJob" },
+      "description": "Freelancer/job seeker saved job listings."
+    },
+    "/jobApplications/{appId}": {
+      "schema": { "$ref": "#/entities/JobApplication" },
+      "description": "Private user job applications and tailored cover letter drafts."
+    },
+    "/jobAlerts/{alertId}": {
+      "schema": { "$ref": "#/entities/JobAlert" },
+      "description": "User job alert criteria."
+    },
+    "/scholarships/{scholarshipId}": {
+      "schema": { "$ref": "#/entities/ScholarshipRecord" },
+      "description": "Verified & reviewed scholarship records with source verification status."
+    },
+    "/savedScholarships/{savedId}": {
+      "schema": { "$ref": "#/entities/SavedScholarship" },
+      "description": "Student saved scholarships."
+    },
+    "/scholarshipApplications/{appId}": {
+      "schema": { "$ref": "#/entities/ScholarshipApplication" },
+      "description": "Private student scholarship application tracker entries."
+    },
+    "/scholarshipReminders/{reminderId}": {
+      "schema": { "$ref": "#/entities/ScholarshipReminder" },
+      "description": "Private student scholarship deadline reminders."
     },
     "/leadAnalyses/{analysisId}": {
       "schema": { "$ref": "#/entities/LeadAnalysis" },

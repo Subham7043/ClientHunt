@@ -1,4 +1,4 @@
-export type UserRole = 'freelancer' | 'business' | 'admin';
+export type UserRole = 'student' | 'freelancer' | 'business' | 'admin';
 
 export type AccountStatus = 'active' | 'suspended';
 
@@ -50,6 +50,33 @@ export interface BusinessProfile {
   updatedAt?: any;
 }
 
+export interface StudentProfile {
+  uid: string;
+  fullName: string;
+  photoURL?: string;
+  educationLevel:
+    | 'High School'
+    | 'Diploma / Vocational'
+    | 'Undergraduate'
+    | 'Postgraduate'
+    | 'PhD / Doctoral'
+    | 'Postdoctoral';
+  degree: string;
+  course: string;
+  specialization?: string;
+  country: string;
+  state: string;
+  city?: string;
+  institution: string;
+  academicScore?: string;
+  graduationYear: string;
+  incomeRange?: string;
+  interests?: string[];
+  preferredFunding?: 'Any' | 'Full Funding' | 'Partial Funding';
+  createdAt?: any;
+  updatedAt?: any;
+}
+
 export interface BusinessLead {
   id: string;
   ownerId?: string;
@@ -61,6 +88,7 @@ export interface BusinessLead {
   state?: string;
   city?: string;
   area?: string;
+  locality?: string;
   website?: string;
   publicPhone?: string;
   publicEmail?: string;
@@ -69,6 +97,11 @@ export interface BusinessLead {
   linkedinUrl?: string;
   rating?: number;
   reviewCount?: number;
+  openingHours?: string[];
+  businessSize?: string;
+  placesEnriched?: boolean;
+  placesEnrichedAt?: string;
+  dataId?: string;
   source: string;
   sourceUrl?: string;
   providerId?: string;
@@ -116,6 +149,295 @@ export interface HiringOpportunity {
   confidenceScore: number;
   isDemo: boolean;
   discoveredAt: string;
+}
+
+export type JobSourceProvider = 'Google Jobs' | 'LinkedIn Jobs' | 'Other Existing Source';
+export type JobWorkMode = 'Remote' | 'Hybrid' | 'On-site' | 'Not specified';
+export type JobEmploymentType =
+  | 'Full-time'
+  | 'Part-time'
+  | 'Contract'
+  | 'Internship'
+  | 'Freelance'
+  | 'Not specified';
+
+export interface JobListing {
+  id: string;
+  ownerId?: string;
+  externalJobId?: string;
+  title: string;
+  company: string;
+  description: string;
+  requirements: string[];
+  skills: string[];
+  category?: string;
+  location: string;
+  country: string;
+  state?: string;
+  city?: string;
+  employmentType: JobEmploymentType;
+  workMode: JobWorkMode;
+  experienceLevel?: string;
+  salary: string;
+  currency?: string;
+  postedDate: string;
+  deadline: string;
+  sourceProvider: JobSourceProvider;
+  originalUrl: string;
+  applicationUrl: string;
+  lastVerifiedAt: string;
+  status: 'active' | 'expired' | 'removed' | 'flagged';
+  possibleDuplicate?: boolean;
+  duplicateReason?: string;
+  isDemo: boolean;
+}
+
+export interface JobMatchAnalysis {
+  jobId: string;
+  overallScore: number;
+  skillMatchScore: number;
+  experienceMatchScore: number;
+  locationCompatibility: string;
+  employmentTypeCompatibility: string;
+  matchingSkills: string[];
+  missingSkills: string[];
+  reasonsForRecommendation: string[];
+  disclaimer: string;
+}
+
+export interface SavedJob {
+  id: string;
+  ownerId: string;
+  jobId: string;
+  title: string;
+  company: string;
+  location: string;
+  employmentType: string;
+  workMode: string;
+  salary: string;
+  sourceProvider: string;
+  originalUrl: string;
+  applicationUrl: string;
+  skills: string[];
+  notes?: string;
+  isDemo?: boolean;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface JobApplication {
+  id: string;
+  ownerId: string;
+  jobId: string;
+  title: string;
+  company: string;
+  sourceProvider: string;
+  applicationUrl: string;
+  status: 'Draft' | 'Applied' | 'Interviewing' | 'Offer' | 'Rejected' | 'Withdrawn';
+  coverLetterDraft?: string;
+  appliedDate?: string;
+  notes?: string;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface JobAlert {
+  id: string;
+  ownerId: string;
+  keywords: string;
+  category?: string;
+  country: string;
+  location?: string;
+  workMode?: string;
+  employmentType?: string;
+  active: boolean;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export type ScholarshipSourceType =
+  | 'Official Government Portal'
+  | 'Official Scholarship Provider'
+  | 'Official University Source'
+  | 'Secondary Source'
+  | 'Unverified Source';
+
+export type ScholarshipVerificationStatus =
+  | 'Verified'
+  | 'Pending Review'
+  | 'Unverified'
+  | 'Rejected';
+
+export type ScholarshipFundingType =
+  | 'Full Funding'
+  | 'Partial Funding'
+  | 'Tuition Waiver'
+  | 'Stipend / Grant'
+  | 'Not specified';
+
+export type ScholarshipStatus = 'Open' | 'Upcoming' | 'Closed' | 'Expired';
+
+export interface ScholarshipRecord {
+  id: string;
+  ownerId?: string;
+  title: string;
+  provider: string;
+  description: string;
+  category:
+    | 'Government'
+    | 'Private'
+    | 'University'
+    | 'International'
+    | 'Fellowship & Grant'
+    | 'Research'
+    | 'Merit-based'
+    | 'Need-based'
+    | 'Minority & Category';
+  country: string;
+  state: string;
+  city?: string;
+  eligibleLocations: string[];
+  educationLevels: string[];
+  degrees: string[];
+  courses: string[];
+  subjects: string[];
+  academicRequirements: string;
+  financialRequirements: string;
+  otherEligibilityCriteria: string;
+  amount: string;
+  currency: string;
+  fundingType: ScholarshipFundingType;
+  benefits: string[];
+  startDate: string;
+  deadline: string;
+  academicYear?: string;
+  requiredDocuments: string[];
+  applicationInstructions: string;
+  officialApplicationUrl: string;
+  sourceUrl: string;
+  sourceType: ScholarshipSourceType;
+  sourceVerificationStatus: ScholarshipVerificationStatus;
+  publicationDate: string;
+  lastVerifiedAt: string;
+  status: ScholarshipStatus;
+  verifiedFacts?: string[];
+  aiMatchReason?: string;
+  possibleDuplicate?: boolean;
+  duplicateReason?: string;
+  isDemo: boolean;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export type EligibilityVerdict =
+  | 'Eligible'
+  | 'Potentially Eligible'
+  | 'Not Eligible'
+  | 'Insufficient Information';
+
+export interface ScholarshipEligibilityResult {
+  scholarshipId: string;
+  scholarshipTitle: string;
+  verdict: EligibilityVerdict;
+  matchScore: number;
+  scoreBreakdown: ScoreFactor[];
+  matchingCriteria: string[];
+  unmatchedCriteria: string[];
+  missingInformation: string[];
+  importantConditions: string[];
+  requiredDocuments: string[];
+  reason: string;
+  officialSourceReference: string;
+  disclaimer: string;
+}
+
+export type ScholarshipApplicationStatus =
+  | 'Interested'
+  | 'Saved'
+  | 'Eligibility Checking'
+  | 'Preparing Documents'
+  | 'Ready to Apply'
+  | 'Applied'
+  | 'Under Review'
+  | 'Selected'
+  | 'Rejected'
+  | 'Expired';
+
+export const SCHOLARSHIP_APPLICATION_STATUSES: ScholarshipApplicationStatus[] = [
+  'Interested',
+  'Saved',
+  'Eligibility Checking',
+  'Preparing Documents',
+  'Ready to Apply',
+  'Applied',
+  'Under Review',
+  'Selected',
+  'Rejected',
+  'Expired',
+];
+
+export interface SavedScholarship {
+  id: string;
+  ownerId: string;
+  scholarshipId: string;
+  title: string;
+  provider: string;
+  category: string;
+  country: string;
+  amount: string;
+  fundingType: string;
+  deadline: string;
+  officialApplicationUrl: string;
+  sourceType: ScholarshipSourceType;
+  sourceVerificationStatus: ScholarshipVerificationStatus;
+  notes?: string;
+  isDemo?: boolean;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface ScholarshipApplication {
+  id: string;
+  ownerId: string;
+  scholarshipId: string;
+  title: string;
+  provider: string;
+  deadline: string;
+  officialApplicationUrl: string;
+  status: ScholarshipApplicationStatus;
+  applicationDate?: string;
+  referenceNumber?: string;
+  reminderDate?: string;
+  notes?: string;
+  documentNames?: string[];
+  statusHistory?: string[];
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface ScholarshipReminder {
+  id: string;
+  ownerId: string;
+  scholarshipId: string;
+  scholarshipTitle: string;
+  reminderDate: string;
+  deadline: string;
+  note?: string;
+  completed: boolean;
+  createdAt?: any;
+}
+
+export interface EducationInstitution {
+  id: string;
+  name: string;
+  category: string;
+  address?: string;
+  city: string;
+  country: string;
+  website?: string;
+  source: string;
+  sourceUrl?: string;
+  rating?: number;
 }
 
 export interface ScoreFactor {
@@ -307,7 +629,16 @@ export interface ConversationMessage {
 export interface NotificationItem {
   id: string;
   userId: string;
-  type: 'application' | 'proposal' | 'message' | 'project' | 'followup' | 'opportunity';
+  type:
+    | 'application'
+    | 'proposal'
+    | 'message'
+    | 'project'
+    | 'followup'
+    | 'opportunity'
+    | 'scholarship'
+    | 'job'
+    | 'deadline';
   title: string;
   message: string;
   read: boolean;
@@ -327,7 +658,7 @@ export interface NotificationPreference {
 export interface AbuseReport {
   id: string;
   reporterId: string;
-  targetType: 'lead' | 'opportunity' | 'project' | 'user';
+  targetType: 'lead' | 'opportunity' | 'project' | 'user' | 'job' | 'scholarship';
   targetId: string;
   reason: string;
   details?: string;
@@ -348,6 +679,10 @@ export interface AuditLog {
 }
 
 export type ProviderId =
+  | 'google_maps_search'
+  | 'google_maps_places'
+  | 'google_jobs'
+  | 'linkedin_jobs'
   | 'scrapingdog'
   | 'gemini'
   | 'openstreetmap'
@@ -366,18 +701,39 @@ export interface ProviderHealth {
   successfulRequests: number;
   failedRequests: number;
   creditsConsumed: number;
+  estimatedCreditsConsumed?: number;
+  confirmedCreditsRemaining?: number | null;
+  costNote?: string;
   dailyQuotaLimit: number;
   lastSuccessfulSync: string | null;
   lastError: string | null;
   description: string;
 }
 
+export interface FailedRequestLog {
+  id: string;
+  providerId: ProviderId;
+  providerName: string;
+  endpoint: string;
+  error: string;
+  timestamp: string;
+}
+
 export interface AiTelemetryEntry {
   id: string;
-  task: 'classify' | 'analyze' | 'pitch';
+  task:
+    | 'classify'
+    | 'analyze'
+    | 'pitch'
+    | 'scholarship_nlq'
+    | 'scholarship_extract'
+    | 'scholarship_eligibility'
+    | 'job_match'
+    | 'job_draft';
   target: string;
   confidenceScore?: number;
   success: boolean;
   error?: string;
   timestamp: string;
 }
+

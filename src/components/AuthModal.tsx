@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Briefcase, Mail, ShieldCheck, UserCheck, X } from 'lucide-react';
+import { Briefcase, GraduationCap, Mail, ShieldCheck, UserCheck, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+
+type OnboardingRole = 'student' | 'freelancer' | 'business';
 
 interface AuthModalProps {
   open: boolean;
   initialMode: 'login' | 'register';
-  initialRole?: 'freelancer' | 'business';
+  initialRole?: OnboardingRole;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -22,7 +24,7 @@ export function AuthModal({
   const { toast } = useToast();
 
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
-  const [role, setRole] = useState<'freelancer' | 'business'>(initialRole);
+  const [role, setRole] = useState<OnboardingRole>(initialRole);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -114,11 +116,11 @@ export function AuthModal({
             <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
               I am joining as
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setRole('freelancer')}
-                className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-colors cursor-pointer ${
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border text-left transition-colors cursor-pointer ${
                   role === 'freelancer'
                     ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300'
                     : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
@@ -127,13 +129,28 @@ export function AuthModal({
                 <UserCheck className="w-4 h-4 shrink-0" />
                 <div>
                   <p className="text-xs font-bold">Freelancer</p>
-                  <p className="text-[11px] opacity-80">Find clients & jobs</p>
+                  <p className="text-[11px] opacity-80 leading-tight">Leads &amp; jobs</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('student')}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border text-left transition-colors cursor-pointer ${
+                  role === 'student'
+                    ? 'border-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
+                    : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                }`}
+              >
+                <GraduationCap className="w-4 h-4 shrink-0" />
+                <div>
+                  <p className="text-xs font-bold">Student</p>
+                  <p className="text-[11px] opacity-80 leading-tight">Scholarships</p>
                 </div>
               </button>
               <button
                 type="button"
                 onClick={() => setRole('business')}
-                className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-colors cursor-pointer ${
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border text-left transition-colors cursor-pointer ${
                   role === 'business'
                     ? 'border-violet-600 bg-violet-50/70 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300'
                     : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
@@ -142,7 +159,7 @@ export function AuthModal({
                 <Briefcase className="w-4 h-4 shrink-0" />
                 <div>
                   <p className="text-xs font-bold">Business</p>
-                  <p className="text-[11px] opacity-80">Post projects & hire</p>
+                  <p className="text-[11px] opacity-80 leading-tight">Hire talent</p>
                 </div>
               </button>
             </div>
@@ -268,8 +285,12 @@ export function AuthModal({
 export function OnboardingView() {
   const { firebaseUser, account, completeOnboarding, resendVerificationEmail, signOut } = useAuth();
   const { toast } = useToast();
-  const [role, setRole] = useState<'freelancer' | 'business'>(
-    account?.role === 'business' ? 'business' : 'freelancer'
+  const [role, setRole] = useState<OnboardingRole>(
+    account?.role === 'business'
+      ? 'business'
+      : account?.role === 'student'
+        ? 'student'
+        : 'freelancer'
   );
   const [fullName, setFullName] = useState(firebaseUser?.displayName || '');
   const [headline, setHeadline] = useState('');
@@ -286,6 +307,20 @@ export function OnboardingView() {
   const [minBudget, setMinBudget] = useState('10000');
   const [description, setDescription] = useState('');
   const [website, setWebsite] = useState('');
+
+  // Student fields
+  const [educationLevel, setEducationLevel] = useState<
+    'High School' | 'Diploma / Vocational' | 'Undergraduate' | 'Postgraduate' | 'PhD / Doctoral' | 'Postdoctoral'
+  >('Postgraduate');
+  const [degree, setDegree] = useState('MCA');
+  const [course, setCourse] = useState('Computer Science & Applications');
+  const [specialization, setSpecialization] = useState('Cybersecurity');
+  const [institution, setInstitution] = useState('');
+  const [academicScore, setAcademicScore] = useState('8.4 CGPA');
+  const [graduationYear, setGraduationYear] = useState('2027');
+  const [incomeRange, setIncomeRange] = useState('Below ₹5 Lakh / year');
+  const [preferredFunding, setPreferredFunding] = useState<'Any' | 'Full Funding' | 'Partial Funding'>('Any');
+  const [interestsText, setInterestsText] = useState('Government, Merit-based, Cybersecurity, International');
   const [saving, setSaving] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -308,6 +343,16 @@ export function OnboardingView() {
         minBudget: Number(minBudget) || 5000,
         description,
         website,
+        educationLevel,
+        degree,
+        course,
+        specialization,
+        institution,
+        academicScore,
+        graduationYear,
+        incomeRange,
+        preferredFunding,
+        interests: interestsText.split(',').map((s) => s.trim()).filter(Boolean),
       });
       toast('Profile setup complete!', 'success');
     } catch (err) {
@@ -352,7 +397,7 @@ export function OnboardingView() {
 
         <form onSubmit={handleSave} className="mt-6 space-y-5">
           {!account && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => setRole('freelancer')}
@@ -362,8 +407,20 @@ export function OnboardingView() {
                     : 'border-slate-200 dark:border-slate-800'
                 }`}
               >
-                <p className="text-sm font-bold">Freelancer Account</p>
-                <p className="text-xs opacity-80 mt-0.5">Discover leads, generate pitches, apply to projects</p>
+                <p className="text-sm font-bold">Freelancer</p>
+                <p className="text-xs opacity-80 mt-0.5">Find business leads, remote jobs &amp; pitches</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('student')}
+                className={`p-3.5 rounded-xl border text-left cursor-pointer ${
+                  role === 'student'
+                    ? 'border-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
+                    : 'border-slate-200 dark:border-slate-800'
+                }`}
+              >
+                <p className="text-sm font-bold">Student</p>
+                <p className="text-xs opacity-80 mt-0.5">Discover verified scholarships &amp; track deadlines</p>
               </button>
               <button
                 type="button"
@@ -374,13 +431,159 @@ export function OnboardingView() {
                     : 'border-slate-200 dark:border-slate-800'
                 }`}
               >
-                <p className="text-sm font-bold">Business Account</p>
-                <p className="text-xs opacity-80 mt-0.5">Post projects, shortlist & hire freelancers</p>
+                <p className="text-sm font-bold">Business</p>
+                <p className="text-xs opacity-80 mt-0.5">Post projects, shortlist &amp; hire freelancers</p>
               </button>
             </div>
           )}
 
-          {role === 'freelancer' ? (
+          {role === 'student' ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Full Name *</label>
+                  <input
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Education Level *</label>
+                  <select
+                    value={educationLevel}
+                    onChange={(e) => setEducationLevel(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                  >
+                    <option value="High School">High School</option>
+                    <option value="Diploma / Vocational">Diploma / Vocational</option>
+                    <option value="Undergraduate">Undergraduate</option>
+                    <option value="Postgraduate">Postgraduate</option>
+                    <option value="PhD / Doctoral">PhD / Doctoral</option>
+                    <option value="Postdoctoral">Postdoctoral</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Degree *</label>
+                  <input
+                    required
+                    value={degree}
+                    onChange={(e) => setDegree(e.target.value)}
+                    placeholder="e.g. B.Tech, MCA, M.Sc"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Course / Field *</label>
+                  <input
+                    required
+                    value={course}
+                    onChange={(e) => setCourse(e.target.value)}
+                    placeholder="e.g. Computer Science"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Specialization</label>
+                  <input
+                    value={specialization}
+                    onChange={(e) => setSpecialization(e.target.value)}
+                    placeholder="e.g. Cybersecurity, AI"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">College / University *</label>
+                  <input
+                    required
+                    value={institution}
+                    onChange={(e) => setInstitution(e.target.value)}
+                    placeholder="e.g. MNIT Jaipur"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">GPA / Marks</label>
+                    <input
+                      value={academicScore}
+                      onChange={(e) => setAcademicScore(e.target.value)}
+                      placeholder="e.g. 8.5 CGPA"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Graduation Year</label>
+                    <input
+                      value={graduationYear}
+                      onChange={(e) => setGraduationYear(e.target.value)}
+                      placeholder="2027"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm font-mono tabular-nums"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Country *</label>
+                  <input required value={country} onChange={(e) => setCountry(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">State</label>
+                  <input value={state} onChange={(e) => setState(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">City</label>
+                  <input value={city} onChange={(e) => setCity(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Funding Preference</label>
+                  <select
+                    value={preferredFunding}
+                    onChange={(e) => setPreferredFunding(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                  >
+                    <option value="Any">Any</option>
+                    <option value="Full Funding">Full Funding</option>
+                    <option value="Partial Funding">Partial Funding</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Income Range (Optional)</label>
+                  <select
+                    value={incomeRange}
+                    onChange={(e) => setIncomeRange(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                  >
+                    <option value="Prefer not to say">Prefer not to say</option>
+                    <option value="Below ₹2.5 Lakh / year">Below ₹2.5 Lakh / year</option>
+                    <option value="Below ₹5 Lakh / year">Below ₹5 Lakh / year</option>
+                    <option value="₹5 Lakh – ₹8 Lakh / year">₹5 Lakh – ₹8 Lakh / year</option>
+                    <option value="₹8 Lakh – ₹15 Lakh / year">₹8 Lakh – ₹15 Lakh / year</option>
+                    <option value="Above ₹15 Lakh / year">Above ₹15 Lakh / year</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Scholarship Interests (comma-separated)</label>
+                  <input
+                    value={interestsText}
+                    onChange={(e) => setInterestsText(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0B1221] text-sm"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Privacy notice: ClientHunt AI only stores academic matching attributes and never collects Aadhaar numbers, banking credentials, or private ID documents.
+              </p>
+            </>
+          ) : role === 'freelancer' ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

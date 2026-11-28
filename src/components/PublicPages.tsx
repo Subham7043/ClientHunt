@@ -16,15 +16,21 @@ import {
   DEMO_BUSINESS_LEADS,
   DEMO_HIRING_OPPORTUNITIES,
   DEMO_SAMPLE_PROJECTS,
+  DEMO_SCHOLARSHIPS,
 } from '../data/demoData';
-import type { BusinessLead, HiringOpportunity, MarketplaceProject } from '../types/domain';
+import type {
+  BusinessLead,
+  HiringOpportunity,
+  MarketplaceProject,
+  ScholarshipRecord,
+} from '../types/domain';
 import { LeafletMap } from './LeafletMap';
 import type { PublicPageRoute } from './PublicHeader';
 
 interface PublicPagesProps {
   page: PublicPageRoute;
   onNavigate: (page: PublicPageRoute) => void;
-  onOpenAuth: (mode: 'login' | 'register', role?: 'freelancer' | 'business') => void;
+  onOpenAuth: (mode: 'login' | 'register', role?: 'student' | 'freelancer' | 'business') => void;
   onEnterDashboard: () => void;
   isSignedIn: boolean;
 }
@@ -44,6 +50,9 @@ export function PublicPages({
   }
   if (page === 'projects') {
     return <PublicProjectsView onOpenAuth={onOpenAuth} isSignedIn={isSignedIn} onEnterDashboard={onEnterDashboard} />;
+  }
+  if (page === 'scholarships') {
+    return <PublicScholarshipsView onOpenAuth={onOpenAuth} isSignedIn={isSignedIn} onEnterDashboard={onEnterDashboard} />;
   }
   if (page === 'terms' || page === 'privacy') {
     return <LegalPage type={page} onBack={() => onNavigate('home')} />;
@@ -65,7 +74,7 @@ function HomePage({
   isSignedIn,
 }: {
   onNavigate: (page: PublicPageRoute) => void;
-  onOpenAuth: (mode: 'login' | 'register', role?: 'freelancer' | 'business') => void;
+  onOpenAuth: (mode: 'login' | 'register', role?: 'student' | 'freelancer' | 'business') => void;
   onEnterDashboard: () => void;
   isSignedIn: boolean;
 }) {
@@ -125,11 +134,11 @@ function HomePage({
             </div>
 
             <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
-              <span>Scrapingdog & OpenStreetMap Discovery</span>
+              <span>Google Maps &amp; Places Lead Discovery</span>
               <span aria-hidden="true">·</span>
-              <span>Gemini Opportunity Scoring</span>
+              <span>Google &amp; LinkedIn Jobs Hub</span>
               <span aria-hidden="true">·</span>
-              <span>Direct Business Marketplace</span>
+              <span>Verified Student Scholarships</span>
             </div>
           </div>
 
@@ -279,58 +288,88 @@ function HomePage({
         </div>
       </section>
 
-      {/* Benefits Split: Freelancers & Businesses */}
+      {/* Benefits Grid: Freelancers, Students & Businesses */}
       <section className="border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#0E172A] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-10">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] p-8">
-            <div className="flex items-center gap-4">
-              <img
-                src="/src/assets/images/avatar_freelancer_pro_1795720231545.jpg"
-                alt="Freelance creative technologist"
-                referrerPolicy="no-referrer"
-                className="w-14 h-14 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-              />
-              <div>
-                <p className="text-xs font-medium text-blue-600 dark:text-blue-400">For Freelancers & Studios</p>
-                <h3 className="text-xl font-bold text-[#0B1221] dark:text-white">Turn Discovery Into Signed Retainers</h3>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] p-7 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-4">
+                <img
+                  src="/src/assets/images/avatar_freelancer_pro_1795720231545.jpg"
+                  alt="Freelance creative technologist"
+                  referrerPolicy="no-referrer"
+                  className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                />
+                <div>
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400">For Freelancers &amp; Job Seekers</p>
+                  <h3 className="text-lg font-bold text-[#0B1221] dark:text-white">Turn Discovery Into Deals &amp; Offers</h3>
+                </div>
               </div>
+              <ul className="mt-6 space-y-2.5 text-sm text-slate-600 dark:text-slate-300">
+                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> Local business Maps discovery + Places enrichment</li>
+                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> Unified Google Jobs &amp; LinkedIn Jobs search</li>
+                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> 9-stage CRM, pitch drafts &amp; cover letter generator</li>
+              </ul>
             </div>
-            <ul className="mt-6 space-y-3 text-sm text-slate-600 dark:text-slate-300">
-              <li className="flex items-start gap-2.5"><Check className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> Multi-filter search across city, neighborhood, category, and service need</li>
-              <li className="flex items-start gap-2.5"><Check className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> Transparent Opportunity Score breakdown based solely on public evidence</li>
-              <li className="flex items-start gap-2.5"><Check className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> 9-stage Kanban & table CRM with deal values, notes, and follow-up dates</li>
-              <li className="flex items-start gap-2.5"><Check className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" /> Direct applications on verified ClientHunt business projects</li>
-            </ul>
             <button
               onClick={() => (isSignedIn ? onEnterDashboard() : onOpenAuth('register', 'freelancer'))}
-              className="mt-7 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors cursor-pointer"
+              className="mt-7 w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors cursor-pointer"
             >
               Join as Freelancer
             </button>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] p-8">
-            <div className="flex items-center gap-4">
-              <img
-                src="/src/assets/images/avatar_business_founder_1795720232227.jpg"
-                alt="Business founder"
-                referrerPolicy="no-referrer"
-                className="w-14 h-14 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-              />
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] p-7 flex flex-col justify-between">
+            <div>
               <div>
-                <p className="text-xs font-medium text-violet-600 dark:text-violet-400">For Businesses & Founders</p>
-                <h3 className="text-xl font-bold text-[#0B1221] dark:text-white">Hire Vetted Regional & Remote Talent</h3>
+                <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">For Students &amp; Scholars</p>
+                <h3 className="text-lg font-bold text-[#0B1221] dark:text-white mt-0.5">Verified Scholarship Discovery &amp; AI Eligibility</h3>
               </div>
+              <ul className="mt-6 space-y-2.5 text-sm text-slate-600 dark:text-slate-300">
+                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /> Official government, private, university &amp; global grants</li>
+                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /> Live source verification &amp; 4-state AI Eligibility Checker</li>
+                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /> 10-stage Application Tracker, Comparison &amp; Deadline Calendar</li>
+              </ul>
             </div>
-            <ul className="mt-6 space-y-3 text-sm text-slate-600 dark:text-slate-300">
-              <li className="flex items-start gap-2.5"><Check className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" /> Publish structured project briefs with INR or USD budget ranges</li>
-              <li className="flex items-start gap-2.5"><Check className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" /> Compare proposals, delivery timelines, and portfolio links side by side</li>
-              <li className="flex items-start gap-2.5"><Check className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" /> Shortlist, accept, or reject applicants with automatic notifications</li>
-              <li className="flex items-start gap-2.5"><Check className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" /> Private project messaging restricted strictly to conversation participants</li>
-            </ul>
+            <div className="mt-7 flex gap-2">
+              <button
+                onClick={() => (isSignedIn ? onEnterDashboard() : onOpenAuth('register', 'student'))}
+                className="flex-1 py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors cursor-pointer"
+              >
+                Join as Student
+              </button>
+              <button
+                onClick={() => onNavigate('scholarships')}
+                className="py-2.5 px-3 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Preview
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] p-7 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-4">
+                <img
+                  src="/src/assets/images/avatar_business_founder_1795720232227.jpg"
+                  alt="Business founder"
+                  referrerPolicy="no-referrer"
+                  className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                />
+                <div>
+                  <p className="text-xs font-medium text-violet-600 dark:text-violet-400">For Businesses &amp; Founders</p>
+                  <h3 className="text-lg font-bold text-[#0B1221] dark:text-white">Hire Vetted Regional &amp; Remote Talent</h3>
+                </div>
+              </div>
+              <ul className="mt-6 space-y-2.5 text-sm text-slate-600 dark:text-slate-300">
+                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" /> Publish structured project briefs with INR or USD budgets</li>
+                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" /> Compare proposals, delivery timelines &amp; portfolios</li>
+                <li className="flex items-start gap-2"><Check className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" /> Private participant-locked project messaging</li>
+              </ul>
+            </div>
             <button
               onClick={() => (isSignedIn ? onEnterDashboard() : onOpenAuth('register', 'business'))}
-              className="mt-7 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#0B1221] dark:bg-violet-600 hover:bg-slate-800 dark:hover:bg-violet-700 text-white text-sm font-semibold transition-colors cursor-pointer"
+              className="mt-7 w-full py-2.5 px-4 rounded-lg bg-[#0B1221] dark:bg-violet-600 hover:bg-slate-800 dark:hover:bg-violet-700 text-white text-sm font-semibold transition-colors cursor-pointer"
             >
               Post a Freelance Project
             </button>
@@ -475,13 +514,16 @@ function HomePage({
           </div>
           <div className="flex flex-wrap items-center gap-6 text-xs text-slate-600 dark:text-slate-400">
             <button onClick={() => onNavigate('opportunities')} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">
-              Opportunities
+              Jobs &amp; Hiring
             </button>
             <button onClick={() => onNavigate('businesses')} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">
               Find Businesses
             </button>
             <button onClick={() => onNavigate('projects')} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">
               Browse Projects
+            </button>
+            <button onClick={() => onNavigate('scholarships')} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">
+              Scholarships
             </button>
             <button onClick={() => onNavigate('terms')} className="hover:text-slate-900 dark:hover:text-white cursor-pointer">
               Terms
@@ -630,7 +672,14 @@ function PublicBusinessesView({
   const [onlyWithContact, setOnlyWithContact] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
-  const categories = ['All', 'Restaurants', 'Cafes', 'Coaching institutes', 'Real estate', 'Clothing brands', 'Gyms'];
+  const categories = [
+    'All',
+    'Restaurants and cafes',
+    'Coaching institutes',
+    'Real estate agencies',
+    'Clothing and fashion brands',
+    'Gyms and fitness centres',
+  ];
 
   const filtered = DEMO_BUSINESS_LEADS.filter((lead) => {
     const q = queryText.trim().toLowerCase();
@@ -775,7 +824,7 @@ function PublicProjectsView({
   isSignedIn,
   onEnterDashboard,
 }: {
-  onOpenAuth: (mode: 'login' | 'register', role?: 'freelancer' | 'business') => void;
+  onOpenAuth: (mode: 'login' | 'register', role?: 'student' | 'freelancer' | 'business') => void;
   isSignedIn: boolean;
   onEnterDashboard: () => void;
 }) {
@@ -877,6 +926,120 @@ function PublicProjectsView({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function PublicScholarshipsView({
+  onOpenAuth,
+  isSignedIn,
+  onEnterDashboard,
+}: {
+  onOpenAuth: (mode: 'login' | 'register', role?: 'student' | 'freelancer' | 'business') => void;
+  isSignedIn: boolean;
+  onEnterDashboard: () => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('All');
+  const categories = ['All', 'Government', 'Fellowship & Grant', 'International', 'Private'];
+
+  const filtered = DEMO_SCHOLARSHIPS.filter((s: ScholarshipRecord) => {
+    const matchCat = category === 'All' || s.category === category;
+    const q = search.trim().toLowerCase();
+    const matchQ =
+      !q ||
+      s.title.toLowerCase().includes(q) ||
+      s.provider.toLowerCase().includes(q) ||
+      s.country.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+        <div>
+          <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            Sample Demo Preview · Sign in as Student for Live Source Verification &amp; AI Eligibility Checker
+          </p>
+          <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-[#0B1221] dark:text-white">
+            Scholarship Discovery Hub
+          </h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 max-w-2xl">
+            Every scholarship shows its source type, verification status, official application URL, and explicit deadline or amount — never fabricated data.
+          </p>
+        </div>
+        <button
+          onClick={() => (isSignedIn ? onEnterDashboard() : onOpenAuth('register', 'student'))}
+          className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold whitespace-nowrap shrink-0 cursor-pointer"
+        >
+          {isSignedIn ? 'Open Scholarship Hub' : 'Join as Student'}
+        </button>
+      </div>
+
+      <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
+        <div className="relative flex-1 max-w-md">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Filter by scholarship name, provider, or country..."
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] text-sm text-slate-900 dark:text-white"
+          />
+        </div>
+        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg overflow-x-auto">
+          {categories.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap shrink-0 cursor-pointer ${
+                category === c
+                  ? 'bg-white dark:bg-[#0B1221] text-slate-900 dark:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300'
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {filtered.map((s) => (
+          <div
+            key={s.id}
+            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111A2E] p-6 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{s.category}</span>
+                <span aria-hidden="true">·</span>
+                <span>{s.sourceType}</span>
+                <span aria-hidden="true">·</span>
+                <span>Sample Demo</span>
+              </div>
+              <h2 className="mt-2 text-lg font-bold text-[#0B1221] dark:text-white">{s.title}</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {s.provider} · {s.country} · Amount: {s.amount}
+              </p>
+              <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                {s.description}
+              </p>
+            </div>
+            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+              <span className="font-mono tabular-nums text-slate-500 dark:text-slate-400">
+                Deadline: {s.deadline}
+              </span>
+              <button
+                onClick={() => (isSignedIn ? onEnterDashboard() : onOpenAuth('register', 'student'))}
+                className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+              >
+                Check AI Eligibility
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
